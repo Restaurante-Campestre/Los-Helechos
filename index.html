@@ -22,8 +22,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, set, get, onValue, off, serverTimestamp, remove, runTransaction, update }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-  import { initializeAppCheck, ReCaptchaEnterpriseProvider }
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
   let _fbReadyDispatched = false;
   try {
 
@@ -50,12 +48,6 @@
 
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-
-  // ── APP CHECK ────────────────────────────────────────────────────────
-  initializeAppCheck(app, {
-    provider: new ReCaptchaEnterpriseProvider('6LckYOMsAAAAAGH4M-rH1f2d8C1KEONIroqnqwcP'),
-    isTokenAutoRefreshEnabled: true
-  });
 
   // ── ID ÚNICO DE ESTA PESTAÑA/DISPOSITIVO ─────────────────────────────
   const SESSION_TAB_ID = Math.random().toString(36).slice(2);
