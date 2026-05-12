@@ -414,79 +414,66 @@
 <!-- IMG BTN -->
 <button id="btnPdf" onclick="generarImagen()">📄 Descargar PDF</button>
 
-<!-- FIREBASE -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-let firebaseConfig;
-try {
-  const raw = localStorage.getItem('pos_fb_config');
-  if (raw) firebaseConfig = JSON.parse(raw);
-} catch(e) {}
-
-if (!firebaseConfig) {
-  firebaseConfig = {
-    apiKey: "AIzaSyDqkmnJoldzILAY41ll_sQ4n29WM1XSvyA",
-    databaseURL: "https://los-helechos-8-default-rtdb.firebaseio.com",
-    authDomain: "los-helechos-8.firebaseapp.com",
-    projectId: "los-helechos-8",
-    storageBucket: "los-helechos-8.firebasestorage.app",
-    messagingSenderId: "630169032531",
-    appId: "1:630169032531:web:7e70a01a55585de077b3a6",
-    measurementId: "G-J5MWJ68J9C",
-  };
-}
-
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-
-
-
-async function cargarMenu() {
+<!-- FIREBASE REST (sin SDK para evitar bloqueos de App Check) -->
+<script>
+(function() {
+  let dbUrl = 'https://los-helechos-8-default-rtdb.firebaseio.com';
+  let apiKey = 'AIzaSyDqkmnJoldzILAY41ll_sQ4n29WM1XSvyA';
   try {
-    const [snapMenu, snapConfig, snapMenuSettings, snapMenuImages] = await Promise.all([
-      get(ref(db, 'restaurante/menu')),
-      get(ref(db, 'restaurante/config')),
-      get(ref(db, 'restaurante/menuSettings')),
-      get(ref(db, 'restaurante/menuImages')),
-    ]);
+    const raw = localStorage.getItem('pos_fb_config');
+    if (raw) { const c = JSON.parse(raw); if (c.databaseURL) dbUrl = c.databaseURL; if (c.apiKey) apiKey = c.apiKey; }
+  } catch(e) {}
 
-    const menu   = snapMenu.exists()         ? snapMenu.val()         : [];
-    const cfg    = snapConfig.exists()       ? snapConfig.val()       : {};
-    const ms     = snapMenuSettings.exists() ? snapMenuSettings.val() : {};
-    const imgs   = snapMenuImages.exists()   ? snapMenuImages.val()   : {};
-
-    // Fallback desde localStorage (mismo origen)
-    let editorSettings = {};
-    try {
-      // El POS guarda en 'pos_menu_settings_v1' — usar la misma clave como fallback
-      const ls = localStorage.getItem('pos_menu_settings_v1')
-              || localStorage.getItem('menu_editor_settings_v1');
-      if (ls) editorSettings = JSON.parse(ls);
-    } catch(e) {}
-
-    // Firebase tiene prioridad; imágenes vienen del nodo menuImages
-    // hiddenCategories siempre viene de Firebase (ms) para garantizar consistencia
-    const settings = { ...editorSettings, ...ms, ...imgs };
-    if (ms.hiddenCategories !== undefined) {
-      settings.hiddenCategories = ms.hiddenCategories;
-    } else if (editorSettings.hiddenCategories !== undefined) {
-      settings.hiddenCategories = editorSettings.hiddenCategories;
-    } else {
-      settings.hiddenCategories = [];
-    }
-
-    window._menuData   = menu;
-    window._menuConfig = cfg;
-    window._menuSettings = settings;
-
-    aplicarSettings(cfg, settings);
-    renderMenu(menu, settings);
-  } catch(e) {
-    document.getElementById('loadingState').innerHTML =
-      '<p style="color:#c0392b;">⚠️ Error al cargar el menú.<br>' + e.message + '</p>';
+  function fbGet(path) {
+    const url = dbUrl.replace(/\/$/, '') + '/' + path + '.json?auth=' + apiKey;
+    return fetch(url).then(r => r.json());
   }
-}
+
+  async function cargarMenu() {
+    try {
+      const [menu, cfg, ms, imgs] = await Promise.all([
+        fbGet('restaurante/menu'),
+        fbGet('restaurante/config'),
+        fbGet('restaurante/menuSettings'),
+        fbGet('restaurante/menuImages'),
+      ]);
+
+      const menuArr = Array.isArray(menu) ? menu : (menu && typeof menu === 'object' ? Object.values(menu) : []);
+      const cfgObj  = (cfg  && typeof cfg  === 'object' && !Array.isArray(cfg))  ? cfg  : {};
+      const msObj   = (ms   && typeof ms   === 'object' && !Array.isArray(ms))   ? ms   : {};
+      const imgsObj = (imgs && typeof imgs === 'object' && !Array.isArray(imgs)) ? imgs : {};
+
+      // Fallback desde localStorage
+      let editorSettings = {};
+      try {
+        const ls = localStorage.getItem('pos_menu_settings_v1')
+                || localStorage.getItem('menu_editor_settings_v1');
+        if (ls) editorSettings = JSON.parse(ls);
+      } catch(e) {}
+
+      const settings = { ...editorSettings, ...msObj, ...imgsObj };
+      if (msObj.hiddenCategories !== undefined) {
+        settings.hiddenCategories = msObj.hiddenCategories;
+      } else if (editorSettings.hiddenCategories !== undefined) {
+        settings.hiddenCategories = editorSettings.hiddenCategories;
+      } else {
+        settings.hiddenCategories = [];
+      }
+
+      window._menuData     = menuArr;
+      window._menuConfig   = cfgObj;
+      window._menuSettings = settings;
+
+      aplicarSettings(cfgObj, settings);
+      renderMenu(menuArr, settings);
+    } catch(e) {
+      document.getElementById('loadingState').innerHTML =
+        '<p style="color:#c0392b;">⚠️ Error al cargar el menú.<br>' + e.message + '</p>';
+    }
+  }
+
+  window._cargarMenu = cargarMenu;
+})();
 
 function aplicarSettings(cfg, settings) {
   // Título de la página
@@ -791,7 +778,7 @@ if (new URLSearchParams(location.search).get('admin') === '1') {
   document.getElementById('btnPdf').classList.add('visible');
 }
 
-cargarMenu();
+window._cargarMenu();
 </script>
 </body>
 </html>
