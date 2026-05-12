@@ -419,9 +419,6 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
-
 let firebaseConfig;
 try {
   const raw = localStorage.getItem('pos_fb_config');
@@ -444,11 +441,7 @@ if (!firebaseConfig) {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-// ── APP CHECK ────────────────────────────────────────────────────────
-initializeAppCheck(app, {
-  provider: new ReCaptchaEnterpriseProvider('6LckYOMsAAAAAGH4M-rH1f2d8C1KEONIroqnqwcP'),
-  isTokenAutoRefreshEnabled: true
-});
+
 
 async function cargarMenu() {
   try {
@@ -492,7 +485,7 @@ async function cargarMenu() {
     renderMenu(menu, settings);
   } catch(e) {
     document.getElementById('loadingState').innerHTML =
-      '<p style="color:#c0392b;">⚠️ Error al cargar el menú.<br>Verifica tu conexión.</p>';
+      '<p style="color:#c0392b;">⚠️ Error al cargar el menú.<br>' + e.message + '</p>';
   }
 }
 
