@@ -19176,55 +19176,37 @@ function qr2Generar(tipo) {
     const ctx = dest.getContext('2d');
     ctx.scale(DPR, DPR);
 
-    // Dibujar QR base
+    // Dibujar QR base en blanco y negro primero
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, SIZE, SIZE);
     ctx.drawImage(srcCanvas, 0, 0, SIZE, SIZE);
 
-    // Calcular modSize exacto desde la matriz interna de qrcodejs
-    // qrObj._oQRCode.moduleCount = número de módulos del QR (sin quiet zone)
-    // qrcodejs añade 8px de padding por defecto a cada lado
-    let modSize, moduleCount, QZ;
-    try {
-      moduleCount = qrObj._oQRCode.moduleCount; // ej: 29, 33, 37...
-      QZ = 8; // qrcodejs usa 8px de margen fijo en cada lado
-      modSize = Math.round((SIZE - QZ * 2) / moduleCount);
-    } catch(e) {
-      // Fallback por escaneo de píxeles: buscar primer pixel negro
-      const row = ctx.getImageData(0, 0, SIZE, 1).data;
-      QZ = 0;
-      for (let x = 0; x < SIZE; x++) {
-        if (row[x*4] < 50) { QZ = x; break; }
+    // Reemplazar color: cambiar todos los píxeles negros al color elegido
+    // Este método preserva exactamente la geometría del QR generado por qrcodejs
+    // sin recalcular módulos ni redibujar finder patterns manualmente.
+    const hexToRgb = h => {
+      const r = parseInt(h.slice(1,3),16),
+            g = parseInt(h.slice(3,5),16),
+            b = parseInt(h.slice(5,7),16);
+      return [r,g,b];
+    };
+    const [cr, cg, cb] = hexToRgb(color);
+    const imgData = ctx.getImageData(0, 0, SIZE * DPR, SIZE * DPR);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      // Píxel oscuro (negro o casi negro) → reemplazar con el color elegido
+      if (d[i] < 80 && d[i+1] < 80 && d[i+2] < 80) {
+        d[i]   = cr;
+        d[i+1] = cg;
+        d[i+2] = cb;
+        // d[i+3] (alpha) se mantiene
       }
-      // Medir cuántos píxeles negros hay seguidos (= 1 módulo)
-      modSize = 0;
-      for (let x = QZ; x < SIZE; x++) {
-        if (row[x*4] < 50) modSize++;
-        else break;
-      }
-      if (modSize < 2) modSize = Math.round((SIZE - QZ*2) / 29);
     }
-
-    const FP = modSize * 7; // finder pattern = 7 módulos
-
-    const fps = [
-      { x: QZ,              y: QZ },          // top-left
-      { x: SIZE - QZ - FP,  y: QZ },          // top-right
-      { x: QZ,              y: SIZE - QZ - FP } // bottom-left
-    ];
-
-    fps.forEach(({x, y}) => {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x, y, FP, FP);
-      ctx.fillStyle = color;
-      // Marco exterior 1 módulo de grosor
-      ctx.fillRect(x,            y,            FP,      modSize);           // top
-      ctx.fillRect(x,            y+FP-modSize, FP,      modSize);           // bottom
-      ctx.fillRect(x,            y+modSize,    modSize, FP - modSize*2);    // left
-      ctx.fillRect(x+FP-modSize, y+modSize,    modSize, FP - modSize*2);    // right
-      // Centro sólido 3×3
-      ctx.fillRect(x + modSize*2, y + modSize*2, modSize*3, modSize*3);
-    });
+    // putImageData ignora las transformaciones del ctx (como scale),
+    // así que reseteamos temporalmente y restauramos para el logo
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.putImageData(imgData, 0, 0);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
     const terminar = () => {
       document.body.removeChild(tmp);
@@ -19236,21 +19218,27 @@ function qr2Generar(tipo) {
 
     // Paso 3: logo circular encima si existe
     if (window.logoBase64) {
-      const LOGO = Math.round(SIZE * 0.18);
+      // LOGO ocupa 22% del QR (dentro del 30% de capacidad de corrección nivel H)
+      // Todas las coordenadas deben usar SIZE*DPR porque ctx.scale(DPR,DPR) ya fue aplicado,
+      // así que trabajamos en espacio lógico (SIZE), no en píxeles físicos.
+      const LOGO = Math.round(SIZE * 0.22);
       const logo = new Image();
       logo.onload = () => {
         const cx = SIZE/2, cy = SIZE/2;
+        // Fondo blanco circular con margen de 6px alrededor del logo
+        const pad = 6;
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(cx, cy, LOGO/2+8, 0, Math.PI*2);
+        ctx.arc(cx, cy, LOGO/2 + pad, 0, Math.PI*2);
         ctx.fill();
+        // Clip circular y dibujar logo
         ctx.save();
         ctx.beginPath();
         ctx.arc(cx, cy, LOGO/2, 0, Math.PI*2);
         ctx.clip();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(logo, cx-LOGO/2, cy-LOGO/2, LOGO, LOGO);
+        ctx.drawImage(logo, cx - LOGO/2, cy - LOGO/2, LOGO, LOGO);
         ctx.restore();
         terminar();
       };
