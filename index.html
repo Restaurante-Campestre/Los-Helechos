@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.gstatic.com; script-src 'self' 'unsafe-inline' blob: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://www.gstatic.com https://www.google.com https://www.grecaptcha.net; worker-src blob: 'self'; child-src blob: 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://www.google.com https://www.grecaptcha.net https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; frame-src https://www.google.com https://www.grecaptcha.net;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.gstatic.com; script-src 'self' 'unsafe-inline' blob: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://www.gstatic.com; worker-src blob: 'self'; child-src blob: 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; ">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Mi Restaurante · POS</title>
 <meta name="theme-color" content="#FF441A">
@@ -22,8 +22,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, set, get, onValue, off, serverTimestamp, remove, runTransaction, update }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-  import { initializeAppCheck, ReCaptchaEnterpriseProvider }
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
+
   let _fbReadyDispatched = false;
   try {
 
@@ -37,25 +36,19 @@
 
   if (!firebaseConfig) {
     firebaseConfig = {
-      apiKey:            "AIzaSyDdVg3Djk1syiefgPl1pOP2P5CvmyFuoZQ",
-      databaseURL:       "https://restaurante-los-helechos-8c70d-default-rtdb.firebaseio.com",
-      authDomain:        "restaurante-los-helechos-8c70d.firebaseapp.com",
-      projectId:         "restaurante-los-helechos-8c70d",
-      storageBucket:     "restaurante-los-helechos-8c70d.firebasestorage.app",
-      messagingSenderId: "941592922717",
-      appId:             "1:941592922717:web:5dba0da583be84527c5bb4",
-      measurementId:     "G-XEP01TZGNE",
+      apiKey:            "AIzaSyDqkmnJoldzILAY41ll_sQ4n29WM1XSvyA",
+      databaseURL:       "https://los-helechos-8-default-rtdb.firebaseio.com",
+      authDomain:        "los-helechos-8.firebaseapp.com",
+      projectId:         "los-helechos-8",
+      storageBucket:     "los-helechos-8.firebasestorage.app",
+      messagingSenderId: "630169032531",
+      appId:             "1:630169032531:web:04c5fa12b211bdd677b3a6",
+      measurementId:     "G-23LDY747S0",
     };
   }
 
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-
-  // ── APP CHECK ────────────────────────────────────────────────────────
-  initializeAppCheck(app, {
-    provider: new ReCaptchaEnterpriseProvider('6LckYOMsAAAAAGH4M-rH1f2d8C1KEONIroqnqwcP'),
-    isTokenAutoRefreshEnabled: true
-  });
 
   // ── ID ÚNICO DE ESTA PESTAÑA/DISPOSITIVO ─────────────────────────────
   const SESSION_TAB_ID = Math.random().toString(36).slice(2);
