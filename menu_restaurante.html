@@ -387,29 +387,20 @@ body.tamano-large.estilo-lista  .cat-title   { font-size: 12px; }
 <script type="module">
 import { initializeApp }         from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
-
 // Config Firebase
 const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyDdVg3Djk1syiefgPl1pOP2P5CvmyFuoZQ",
-  databaseURL:       "https://restaurante-los-helechos-8c70d-default-rtdb.firebaseio.com",
-  authDomain:        "restaurante-los-helechos-8c70d.firebaseapp.com",
-  projectId:         "restaurante-los-helechos-8c70d",
-  storageBucket:     "restaurante-los-helechos-8c70d.firebasestorage.app",
-  messagingSenderId: "941592922717",
-  appId:             "1:941592922717:web:5dba0da583be84527c5bb4",
-  measurementId:     "G-XEP01TZGNE",
+  apiKey:            "AIzaSyDqkmnJoldzILAY41ll_sQ4n29WM1XSvyA",
+  databaseURL:       "https://los-helechos-8-default-rtdb.firebaseio.com",
+  authDomain:        "los-helechos-8.firebaseapp.com",
+  projectId:         "los-helechos-8",
+  storageBucket:     "los-helechos-8.firebasestorage.app",
+  messagingSenderId: "630169032531",
+  appId:             "1:630169032531:web:04c5fa12b211bdd677b3a6",
+  measurementId:     "G-23LDY747S0",
 };
 
 const app = initializeApp(FIREBASE_CONFIG);
 const db  = getDatabase(app);
-
-// App Check — requerido por las reglas de seguridad de la base de datos
-initializeAppCheck(app, {
-  provider: new ReCaptchaEnterpriseProvider('6LckYOMsAAAAAGH4M-rH1f2d8C1KEONIroqnqwcP'),
-  isTokenAutoRefreshEnabled: true,
-});
 
 // Cargar datos en paralelo
 async function cargarMenu() {
