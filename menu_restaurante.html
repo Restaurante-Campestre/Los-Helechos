@@ -387,6 +387,8 @@ body.tamano-large.estilo-lista  .cat-title   { font-size: 12px; }
 <script type="module">
 import { initializeApp }         from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
 
 // Config Firebase
 const FIREBASE_CONFIG = {
@@ -402,6 +404,12 @@ const FIREBASE_CONFIG = {
 
 const app = initializeApp(FIREBASE_CONFIG);
 const db  = getDatabase(app);
+
+// App Check — requerido por las reglas de seguridad de la base de datos
+initializeAppCheck(app, {
+  provider: new ReCaptchaEnterpriseProvider('6LckYOMsAAAAAGH4M-rH1f2d8C1KEONIroqnqwcP'),
+  isTokenAutoRefreshEnabled: true,
+});
 
 // Cargar datos en paralelo
 async function cargarMenu() {
