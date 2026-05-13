@@ -19141,12 +19141,105 @@ function qr2Generar(tipo) {
   if (!wrap) return;
   wrap.innerHTML = '';
 
+  // ── Usar QRCodeStyling si está disponible (diseño estético) ──
+  if (typeof QRCodeStyling !== 'undefined') {
+    const hacerLogoRedondo = (base64, callback) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 500;
+        const cv = document.createElement('canvas');
+        cv.width = cv.height = size;
+        const cx = cv.getContext('2d');
+        cx.beginPath();
+        cx.arc(size/2, size/2, size/2, 0, Math.PI*2);
+        cx.closePath();
+        cx.clip();
+        cx.drawImage(img, 0, 0, size, size);
+        callback(cv.toDataURL('image/png'));
+      };
+      img.onerror = () => callback(base64);
+      img.src = base64;
+    };
+
+    const construirQR = (logoRedondo) => {
+      const cfg = {
+        width: 1000,
+        height: 1000,
+        data: url,
+        dotsOptions: {
+          color: '#000000',
+          type: 'rounded'
+        },
+        cornersSquareOptions: {
+          color: color,
+          type: 'extra-rounded'
+        },
+        cornersDotOptions: {
+          color: color
+        },
+        backgroundOptions: {
+          color: '#ffffff'
+        },
+        qrOptions: {
+          errorCorrectionLevel: 'H'
+        }
+      };
+      if (logoRedondo) {
+        cfg.image = logoRedondo;
+        cfg.imageOptions = { margin: 8, imageSize: 0.22 };
+      }
+
+      const qrCode = new QRCodeStyling(cfg);
+      const qrDiv  = document.createElement('div');
+      qrDiv.style.cssText = 'display:flex;justify-content:center;';
+      wrap.appendChild(qrDiv);
+      qrCode.append(qrDiv);
+
+      // Capturar el canvas generado para descarga/compartir
+      setTimeout(() => {
+        const svgEl  = qrDiv.querySelector('svg');
+        const canvasEl = qrDiv.querySelector('canvas');
+        // QRCodeStyling genera SVG; convertir a canvas para _qr2
+        if (svgEl) {
+          const sz  = 512;
+          const dest = document.createElement('canvas');
+          dest.width = dest.height = sz;
+          const ctx2 = dest.getContext('2d');
+          const svgStr = new XMLSerializer().serializeToString(svgEl);
+          const blob   = new Blob([svgStr], { type: 'image/svg+xml' });
+          const blobUrl = URL.createObjectURL(blob);
+          const img2 = new Image();
+          img2.onload = () => {
+            ctx2.drawImage(img2, 0, 0, sz, sz);
+            URL.revokeObjectURL(blobUrl);
+            _qr2[tipo] = dest;
+          };
+          img2.onerror = () => URL.revokeObjectURL(blobUrl);
+          img2.src = blobUrl;
+        } else if (canvasEl) {
+          _qr2[tipo] = canvasEl;
+        }
+        // Aplicar estilo visual al contenedor SVG/canvas
+        const child = qrDiv.firstElementChild;
+        if (child) child.style.cssText = 'width:260px!important;height:260px!important;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);display:block;';
+        _mostrarControlesQR(tipo, url);
+      }, 400);
+    };
+
+    if (window.logoBase64) {
+      hacerLogoRedondo(window.logoBase64, construirQR);
+    } else {
+      construirQR(null);
+    }
+    return;
+  }
+
+  // ── Fallback: qrcodejs + canvas si QRCodeStyling no cargó ────
   if (typeof QRCode === 'undefined') {
     wrap.innerHTML = '<p style="color:#E53935;font-size:12px;text-align:center;padding:20px;">⚠️ Librería QR no disponible.</p>';
     return;
   }
 
-  // Paso 1: generar QR base en div oculto
   const tmp = document.createElement('div');
   tmp.style.cssText = 'position:absolute;left:-9999px;top:-9999px;visibility:hidden;';
   document.body.appendChild(tmp);
@@ -19164,65 +19257,50 @@ function qr2Generar(tipo) {
     return;
   }
 
-  // Paso 2: componer canvas con colores de esquinas y logo
   setTimeout(() => {
     const srcCanvas = tmp.querySelector('canvas');
     if (!srcCanvas) { document.body.removeChild(tmp); return; }
 
     const SIZE = srcCanvas.width || 512;
-    const DPR  = Math.min(window.devicePixelRatio || 1, 3); // máx 3× para no exceder memoria
+    const DPR  = Math.min(window.devicePixelRatio || 1, 3);
     const dest = document.createElement('canvas');
     dest.width = dest.height = SIZE * DPR;
     const ctx = dest.getContext('2d');
     ctx.scale(DPR, DPR);
 
-    // Dibujar QR base
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, SIZE, SIZE);
     ctx.drawImage(srcCanvas, 0, 0, SIZE, SIZE);
 
-    // Calcular modSize exacto desde la matriz interna de qrcodejs
-    // qrObj._oQRCode.moduleCount = número de módulos del QR (sin quiet zone)
-    // qrcodejs añade 8px de padding por defecto a cada lado
     let modSize, moduleCount, QZ;
     try {
-      moduleCount = qrObj._oQRCode.moduleCount; // ej: 29, 33, 37...
-      QZ = 8; // qrcodejs usa 8px de margen fijo en cada lado
+      moduleCount = qrObj._oQRCode.moduleCount;
+      QZ = 8;
       modSize = Math.round((SIZE - QZ * 2) / moduleCount);
     } catch(e) {
-      // Fallback por escaneo de píxeles: buscar primer pixel negro
       const row = ctx.getImageData(0, 0, SIZE, 1).data;
       QZ = 0;
-      for (let x = 0; x < SIZE; x++) {
-        if (row[x*4] < 50) { QZ = x; break; }
-      }
-      // Medir cuántos píxeles negros hay seguidos (= 1 módulo)
+      for (let x = 0; x < SIZE; x++) { if (row[x*4] < 50) { QZ = x; break; } }
       modSize = 0;
-      for (let x = QZ; x < SIZE; x++) {
-        if (row[x*4] < 50) modSize++;
-        else break;
-      }
+      for (let x = QZ; x < SIZE; x++) { if (row[x*4] < 50) modSize++; else break; }
       if (modSize < 2) modSize = Math.round((SIZE - QZ*2) / 29);
     }
 
-    const FP = modSize * 7; // finder pattern = 7 módulos
-
+    const FP  = modSize * 7;
     const fps = [
-      { x: QZ,              y: QZ },          // top-left
-      { x: SIZE - QZ - FP,  y: QZ },          // top-right
-      { x: QZ,              y: SIZE - QZ - FP } // bottom-left
+      { x: QZ,             y: QZ },
+      { x: SIZE - QZ - FP, y: QZ },
+      { x: QZ,             y: SIZE - QZ - FP }
     ];
 
     fps.forEach(({x, y}) => {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(x, y, FP, FP);
       ctx.fillStyle = color;
-      // Marco exterior 1 módulo de grosor
-      ctx.fillRect(x,            y,            FP,      modSize);           // top
-      ctx.fillRect(x,            y+FP-modSize, FP,      modSize);           // bottom
-      ctx.fillRect(x,            y+modSize,    modSize, FP - modSize*2);    // left
-      ctx.fillRect(x+FP-modSize, y+modSize,    modSize, FP - modSize*2);    // right
-      // Centro sólido 3×3
+      ctx.fillRect(x,            y,            FP,      modSize);
+      ctx.fillRect(x,            y+FP-modSize, FP,      modSize);
+      ctx.fillRect(x,            y+modSize,    modSize, FP - modSize*2);
+      ctx.fillRect(x+FP-modSize, y+modSize,    modSize, FP - modSize*2);
       ctx.fillRect(x + modSize*2, y + modSize*2, modSize*3, modSize*3);
     });
 
@@ -19234,7 +19312,6 @@ function qr2Generar(tipo) {
       _mostrarControlesQR(tipo, url);
     };
 
-    // Paso 3: logo circular encima si existe
     if (window.logoBase64) {
       const LOGO = Math.round(SIZE * 0.18);
       const logo = new Image();
