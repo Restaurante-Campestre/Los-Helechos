@@ -648,6 +648,55 @@
   body.app-hidden #drawerOverlay,
   body.app-hidden #sidebar { display: none !important; }
 
+  /* ── SPLASH / PRECARGA ───────────────────────────────── */
+  #appSplash {
+    position: fixed; inset: 0; z-index: 99999;
+    background: var(--fondo);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+  #appSplash.splash-hide {
+    opacity: 0; visibility: hidden; pointer-events: none;
+  }
+  .splash-logo-wrap {
+    width: 88px; height: 88px; border-radius: 24px;
+    background: var(--rappi); display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 32px rgba(255,68,26,0.35);
+    animation: splashPulse 1.6s ease-in-out infinite;
+  }
+  .splash-logo-wrap img {
+    width: 64px; height: 64px; object-fit: contain; border-radius: 16px;
+  }
+  .splash-logo-wrap .splash-emoji {
+    font-size: 42px; line-height: 1;
+  }
+  .splash-title {
+    font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 800;
+    color: var(--negro); letter-spacing: -0.5px;
+  }
+  .splash-subtitle {
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--gris); margin-top: -14px;
+  }
+  .splash-bar-wrap {
+    width: 160px; height: 4px; background: var(--borde); border-radius: 2px; overflow: hidden;
+  }
+  .splash-bar {
+    height: 100%; width: 0%; background: var(--rappi); border-radius: 2px;
+    animation: splashBar 1.8s ease-in-out forwards;
+  }
+  @keyframes splashPulse {
+    0%, 100% { transform: scale(1);   box-shadow: 0 8px 32px rgba(255,68,26,0.35); }
+    50%       { transform: scale(1.07); box-shadow: 0 12px 40px rgba(255,68,26,0.5); }
+  }
+  @keyframes splashBar {
+    0%   { width: 0%; }
+    60%  { width: 80%; }
+    100% { width: 100%; }
+  }
+  body.dark #appSplash { background: #0D0D0D; }
+
   /* Rol cocina: al iniciar sesión redirige a cocina.html */
   body.rol-cocina { display: none !important; }
 
@@ -2834,6 +2883,16 @@
 </head>
 <body class="app-hidden">
 
+<!-- ── SPLASH / PANTALLA DE PRECARGA ─────────────────────── -->
+<div id="appSplash">
+  <div class="splash-logo-wrap" id="splashLogoWrap">
+    <span class="splash-emoji">🍽️</span>
+  </div>
+  <div class="splash-title" id="splashTitle">Mi Restaurante</div>
+  <div class="splash-subtitle">Cargando sistema…</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+</div>
+
 <!-- OFFLINE BAR -->
 <div class="offline-bar">⚡ Sin conexión — funcionando en modo offline</div>
 
@@ -4749,7 +4808,7 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
           </div>
 
           <div class="qr2-color-row">
-            <label class="qr2-color-label">🎨 Color de esquinas</label>
+            <label class="qr2-color-label">🎨 Color de los cuadros grandes</label>
             <input type="color" class="qr2-color-input" id="qr2ColorMenu" value="#2d8a4e">
           </div>
 
@@ -4785,7 +4844,7 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
           </div>
 
           <div class="qr2-color-row">
-            <label class="qr2-color-label">🎨 Color de esquinas</label>
+            <label class="qr2-color-label">🎨 Color de los cuadros grandes</label>
             <input type="color" class="qr2-color-input" id="qr2ColorDom" value="#1565C0">
           </div>
 
@@ -19181,9 +19240,8 @@ function qr2Generar(tipo) {
     ctx.fillRect(0, 0, SIZE, SIZE);
     ctx.drawImage(srcCanvas, 0, 0, SIZE, SIZE);
 
-    // Reemplazar color: cambiar todos los píxeles negros al color elegido
-    // Este método preserva exactamente la geometría del QR generado por qrcodejs
-    // sin recalcular módulos ni redibujar finder patterns manualmente.
+    // Colorear SOLO los finder patterns (3 cuadros grandes en esquinas del QR).
+    // El resto de módulos de datos permanece negro.
     const hexToRgb = h => {
       const r = parseInt(h.slice(1,3),16),
             g = parseInt(h.slice(3,5),16),
@@ -19193,17 +19251,39 @@ function qr2Generar(tipo) {
     const [cr, cg, cb] = hexToRgb(color);
     const imgData = ctx.getImageData(0, 0, SIZE * DPR, SIZE * DPR);
     const d = imgData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      // Píxel oscuro (negro o casi negro) → reemplazar con el color elegido
-      if (d[i] < 80 && d[i+1] < 80 && d[i+2] < 80) {
-        d[i]   = cr;
-        d[i+1] = cg;
-        d[i+2] = cb;
-        // d[i+3] (alpha) se mantiene
-      }
+    const W = SIZE * DPR;
+
+    // Detectar tamaño del módulo: contar px oscuros consecutivos desde (0,0)
+    // qrcodejs no agrega quiet zone, empieza en (0,0) con módulo oscuro.
+    const isDark = (x, y) => {
+      const idx = (y * W + x) * 4;
+      return d[idx] < 80 && d[idx+1] < 80 && d[idx+2] < 80;
+    };
+    let mSize = 1;
+    for (let x = 1; x < Math.floor(W / 7); x++) {
+      if (isDark(x, 0)) mSize = x + 1; else break;
     }
-    // putImageData ignora las transformaciones del ctx (como scale),
-    // así que reseteamos temporalmente y restauramos para el logo
+    const FP = 7 * mSize; // finder pattern = 7 módulos × mSize px/módulo
+
+    // Colorear un rectángulo: solo píxeles oscuros
+    const colorRect = (x0, y0, w, h) => {
+      for (let py = y0; py < y0 + h && py < W; py++) {
+        for (let px = x0; px < x0 + w && px < W; px++) {
+          const idx = (py * W + px) * 4;
+          if (d[idx] < 80 && d[idx+1] < 80 && d[idx+2] < 80) {
+            d[idx] = cr; d[idx+1] = cg; d[idx+2] = cb;
+          }
+        }
+      }
+    };
+
+    // Los 3 finder patterns: superior-izquierda, superior-derecha, inferior-izquierda
+    colorRect(0,      0,      FP, FP);
+    colorRect(W - FP, 0,      FP, FP);
+    colorRect(0,      W - FP, FP, FP);
+
+    // putImageData ignora transformaciones del ctx (scale),
+    // reseteamos temporalmente y restauramos para el logo
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.putImageData(imgData, 0, 0);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -19340,6 +19420,68 @@ window.qr2Generar    = qr2Generar;
 window.qr2CopiarUrl  = qr2CopiarUrl;
 window.qr2Descargar  = qr2Descargar;
 window.qr2Compartir  = qr2Compartir;
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// SPLASH SCREEN — precarga visual
+// ════════════════════════════════════════════════════════════
+(function() {
+  const splash = document.getElementById('appSplash');
+  if (!splash) return;
+
+  // Actualizar logo del splash con el logo real del restaurante si existe
+  function _splashApplyLogo() {
+    const wrap = document.getElementById('splashLogoWrap');
+    if (!wrap) return;
+    const logo = window.logoBase64;
+    if (logo) {
+      wrap.innerHTML = `<img src="${logo}" alt="logo">`;
+    }
+    // Actualizar título con nombre del restaurante si existe
+    const titleEl = document.getElementById('splashTitle');
+    if (titleEl) {
+      try {
+        const s = JSON.parse(localStorage.getItem('pos_menu_settings') || '{}');
+        if (s.restaurantName) titleEl.textContent = s.restaurantName;
+      } catch(e) {}
+    }
+  }
+
+  // Función global para ocultar el splash
+  window._hideSplash = function() {
+    if (!splash) return;
+    splash.classList.add('splash-hide');
+    setTimeout(() => { splash.style.display = 'none'; }, 450);
+  };
+
+  // Observar cuando se remueve la clase app-hidden del body (= login exitoso)
+  const obs = new MutationObserver(() => {
+    if (!document.body.classList.contains('app-hidden')) {
+      obs.disconnect();
+      window._hideSplash();
+    }
+  });
+  obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+  // Tiempo máximo de splash: si en 6s el login no ocurrió, ocultar de todas formas
+  const _safeguard = setTimeout(() => window._hideSplash(), 6000);
+
+  // Cuando el DOM esté listo, actualizar logo y título
+  document.addEventListener('DOMContentLoaded', () => {
+    clearTimeout(_safeguard);
+    _splashApplyLogo();
+    // Si hay loginScreen visible (no hay sesión persistida), ocultar splash
+    // después de un breve momento para mostrar la pantalla de login suavemente
+    setTimeout(() => {
+      const ls = document.getElementById('loginScreen');
+      const hasSession = !document.body.classList.contains('app-hidden');
+      if (hasSession || (ls && ls.style.display !== 'none')) {
+        window._hideSplash();
+      }
+    }, 1200);
+  });
+})();
 </script>
 
 </body>
