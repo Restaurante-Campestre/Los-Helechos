@@ -5319,7 +5319,6 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
       <div class="role-selector">
         <div class="role-opt" id="roleOptAdmin"  onclick="selRol('admin')">👑 Admin</div>
         <div class="role-opt" id="roleOptMesero" onclick="selRol('mesero')">🧾 Mesero</div>
-        <div class="role-opt" id="roleOptCajero" onclick="selRol('cajero')">💰 Cajero</div>
         <div class="role-opt" id="roleOptCocina" onclick="selRol('cocina')">🍳 Cocina</div>
       </div>
     </div>
@@ -5937,7 +5936,6 @@ function renderLoginUserList() {
   const roles = [
     { rol: 'admin',   icon: '👑', name: 'Administrador', desc: 'Gestión completa del sistema',           habilitado: true },
     { rol: 'mesero',  icon: '🧾', name: 'Mesero',         desc: meseros.length ? `${meseros.length} mesero${meseros.length > 1 ? 's' : ''} disponible${meseros.length > 1 ? 's' : ''}` : 'Sin meseros registrados', habilitado: meseros.length > 0 },
-    { rol: 'cajero',  icon: '💰', name: 'Cajero',          desc: cajeros.length ? `${cajeros.length} cajero${cajeros.length > 1 ? 's' : ''} disponible${cajeros.length > 1 ? 's' : ''}` : 'Sin cajeros registrados', habilitado: cajeros.length > 0 },
     { rol: 'cocina',  icon: '🍳', name: 'Cocina',          desc: 'Visualización de pedidos en tiempo real', habilitado: !!perms.cocina },
   ];
 
@@ -6341,28 +6339,31 @@ async function cerrarSesion() {
   if (typeof cerrarKDSInline === 'function') cerrarKDSInline(); // limpia kdsUnsub, kdsTimerIv, kdsClockIv
   if (typeof window._domDetener === 'function') window._domDetener(); // limpia _domUnsub, _domUnsubKDS, _domUnsubRespuestas
 
-  // Paso 4: persistir órdenes activas en Firebase (solo si hay órdenes)
+  // Pasos 4 y 5: persistir órdenes y liberar sesión en Firebase EN PARALELO
+  // (antes eran secuenciales con 4s cada uno → hasta 8s de espera; ahora máx 1.5s en total)
+  const fbTasks = [];
+
   if (window._FB && window._FB.db && ordenesAlCerrar.length > 0) {
-    try {
-      const { db, ref, set } = window._FB;
-      await Promise.race([
+    const { db, ref, set } = window._FB;
+    fbTasks.push(
+      Promise.race([
         set(ref(db, 'restaurante/ordenes'), ordenesAlCerrar),
-        new Promise(r => setTimeout(r, 4000)) // máximo 4s para no bloquear
-      ]);
-    } catch(e) { console.warn('cerrarSesion fbSync ordenes error:', e.message); }
+        new Promise(r => setTimeout(r, 1500))
+      ]).catch(e => console.warn('cerrarSesion fbSync ordenes error:', e.message))
+    );
   }
 
-  // Paso 5: liberar sesión del usuario en Firebase
-  // FIX: timeout de 4s para que Firebase lento no bloquee el cierre de sesión
   if (usuarioActivo) {
     window._lastLoggedOutUserId = usuarioActivo.id;
-    try {
-      await Promise.race([
+    fbTasks.push(
+      Promise.race([
         fbLiberarSesion(usuarioActivo.id),
-        new Promise(r => setTimeout(r, 4000))
-      ]);
-    } catch(e) { console.warn('cerrarSesion fbLiberarSesion error:', e); }
+        new Promise(r => setTimeout(r, 1500))
+      ]).catch(e => console.warn('cerrarSesion fbLiberarSesion error:', e))
+    );
   }
+
+  if (fbTasks.length > 0) await Promise.all(fbTasks);
   // fix #12: detener el reloj del header al cerrar sesión
   if (window._renderHeaderInterval) { clearInterval(window._renderHeaderInterval); window._renderHeaderInterval = null; }
   // Fix F: detener intervalos huérfanos al cerrar sesión
