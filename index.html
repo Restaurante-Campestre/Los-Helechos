@@ -2752,6 +2752,14 @@
     cursor: pointer; font-family: inherit;
     display: flex; align-items: center; justify-content: center; gap: 6px;
   }
+  .qr2-share-btn {
+    width: 100%; padding: 11px; border-radius: 12px;
+    border: 1.5px solid var(--rappi); background: var(--rappi-soft);
+    font-size: 13px; font-weight: 700; color: var(--rappi);
+    cursor: pointer; font-family: inherit; margin-top: 8px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .qr2-share-btn:active { background: rgba(255,68,26,0.2); }
   .qr2-no-logo {
     background: rgba(255,68,26,0.06); border: 1.5px solid rgba(255,68,26,0.2);
     border-radius: 10px; padding: 10px 12px;
@@ -4759,6 +4767,9 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
           <button class="qr2-download-btn" id="qr2DlMenu" style="display:none;" onclick="qr2Descargar('menu')">
             ⬇️ Descargar QR (HD)
           </button>
+          <button class="qr2-share-btn" id="qr2ShareMenu" style="display:none;" onclick="qr2Compartir('menu')">
+            🔗 Compartir QR
+          </button>
 
         </div><!-- /panel-menu -->
 
@@ -4791,6 +4802,9 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
 
           <button class="qr2-download-btn" id="qr2DlDom" style="display:none;" onclick="qr2Descargar('dom')">
             ⬇️ Descargar QR (HD)
+          </button>
+          <button class="qr2-share-btn" id="qr2ShareDom" style="display:none;" onclick="qr2Compartir('dom')">
+            🔗 Compartir QR
           </button>
 
         </div><!-- /panel-dom -->
@@ -19252,9 +19266,11 @@ function qr2Generar(tipo) {
 function _mostrarControlesQR(tipo, url) {
   const linkRow = document.getElementById(tipo === 'menu' ? 'qr2LinkRowMenu' : 'qr2LinkRowDom');
   const linkTxt = document.getElementById(tipo === 'menu' ? 'qr2LinkTextMenu': 'qr2LinkTextDom');
-  const dlBtn   = document.getElementById(tipo === 'menu' ? 'qr2DlMenu'      : 'qr2DlDom');
+  const dlBtn    = document.getElementById(tipo === 'menu' ? 'qr2DlMenu'      : 'qr2DlDom');
+  const shareBtn = document.getElementById(tipo === 'menu' ? 'qr2ShareMenu'   : 'qr2ShareDom');
   if (linkRow) { linkRow.style.display = 'flex'; if (linkTxt) linkTxt.textContent = url; }
-  if (dlBtn)   dlBtn.style.display = 'flex';
+  if (dlBtn)    dlBtn.style.display    = 'flex';
+  if (shareBtn) shareBtn.style.display = 'flex';
   if (typeof showToast === 'function') showToast('✅ QR generado');
 }
 
@@ -19287,6 +19303,47 @@ function qr2Descargar(tipo) {
   a.click();
 }
 
+// ── Compartir QR como imagen ──────────────────────────────────
+async function qr2Compartir(tipo) {
+  const canvas = _qr2[tipo];
+  if (!canvas || typeof canvas.toDataURL !== 'function') {
+    if (typeof showToast === 'function') showToast('⚠️ Primero genera el QR');
+    return;
+  }
+  const linkTxt = document.getElementById(tipo === 'menu' ? 'qr2LinkTextMenu' : 'qr2LinkTextDom');
+  const url = linkTxt ? linkTxt.textContent : '';
+  const fileName = (tipo === 'menu' ? 'qr_menu_restaurante' : 'qr_domicilios') + '.png';
+
+  try {
+    // Convertir canvas a Blob
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    const file = new File([blob], fileName, { type: 'image/png' });
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      // Web Share API con imagen
+      await navigator.share({
+        title: 'QR Restaurante',
+        text: url || 'Escanea este QR',
+        files: [file]
+      });
+    } else if (navigator.share) {
+      // Web Share API solo URL (sin imagen)
+      await navigator.share({ title: 'QR Restaurante', text: url || 'Escanea este QR', url: url || undefined });
+    } else {
+      // Fallback: descargar la imagen
+      const a = document.createElement('a');
+      a.download = fileName;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      if (typeof showToast === 'function') showToast('💾 QR descargado (compartir no disponible en este navegador)');
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') {
+      if (typeof showToast === 'function') showToast('⚠️ No se pudo compartir');
+    }
+  }
+}
+
 // Exponer globalmente
 window.qr2Tab        = qr2Tab;
 window.qr2Init       = qr2Init;
@@ -19294,6 +19351,7 @@ window.qr2AutoSaveUrl= qr2AutoSaveUrl;
 window.qr2Generar    = qr2Generar;
 window.qr2CopiarUrl  = qr2CopiarUrl;
 window.qr2Descargar  = qr2Descargar;
+window.qr2Compartir  = qr2Compartir;
 </script>
 
 </body>
