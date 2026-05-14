@@ -20470,38 +20470,46 @@ window.qr2Compartir  = qr2Compartir;
     canvas.height = SIZE;
     const ctx = canvas.getContext('2d');
 
-    // ── 1. Leer datos actuales ───────────────────────────────
-    const nombre   = gcGetNombre();
-    const fotoSrc  = window._gcFotoActual || '';
-    const logoSrc  = window.logoBase64    || '';
-    const qrToggle = document.getElementById('gc-qr-domicilio-toggle');
-    const mostrarQr = qrToggle && qrToggle.checked;
-    const qrCanvas  = (mostrarQr && window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement)
-                      ? window._qr2['dom'] : null;
+    // ── 1. Datos actuales ────────────────────────────────────
+    const nombre  = gcGetNombre();
+    const fotoSrc = window._gcFotoActual || '';
+    const logoSrc = window.logoBase64    || '';
+    const qrCanvas = (window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement)
+                     ? window._qr2['dom'] : null;
 
-    // ── Obtener color de marca desde pos_config ──────────────
+    // Color de marca: leer de pos_menu_settings_v1 → colorPrimario
     let brandColor = '#FF441A';
     try {
-      const cfg = JSON.parse(localStorage.getItem('pos_menu_settings') || localStorage.getItem('pos_menu_settings_v1') || '{}');
-      if (cfg.accentColor) brandColor = cfg.accentColor;
+      const raw = localStorage.getItem('pos_menu_settings_v1') || localStorage.getItem('pos_menu_settings') || '{}';
+      const cfg = JSON.parse(raw);
+      if (cfg.colorPrimario && cfg.colorPrimario !== '#2d5a27') brandColor = cfg.colorPrimario;
+      else if (cfg.colorPrimario) brandColor = cfg.colorPrimario;
+      else if (cfg.accentColor)   brandColor = cfg.accentColor;
+    } catch(_) {}
+    // Fallback: leer color de rappi de la config POS
+    try {
+      const cfg2 = JSON.parse(localStorage.getItem('pos_config') || '{}');
+      if (cfg2.colorMarca) brandColor = cfg2.colorMarca;
     } catch(_) {}
 
-    // ── 2. Fondo con foto o degradado ───────────────────────
+    const brandDark = _gcDarken(brandColor, 0.38);
+
+    // ── 2. Fondo ─────────────────────────────────────────────
     if (fotoSrc) {
       const foto = await _loadImg(fotoSrc);
       if (foto) {
-        // Foto de fondo con overlay oscuro
+        // Recorte cuadrado centrado
         const ratio = foto.naturalWidth / foto.naturalHeight;
         let sx = 0, sy = 0, sw = foto.naturalWidth, sh = foto.naturalHeight;
         if (ratio > 1) { sw = foto.naturalHeight; sx = (foto.naturalWidth - sw) / 2; }
         else           { sh = foto.naturalWidth;  sy = (foto.naturalHeight - sh) / 2; }
         ctx.drawImage(foto, sx, sy, sw, sh, 0, 0, SIZE, SIZE);
-        // Overlay degradado de abajo hacia arriba
+        // Overlay suave solo en bordes para no oscurecer el centro
         const ov = ctx.createLinearGradient(0, 0, 0, SIZE);
-        ov.addColorStop(0,   'rgba(0,0,0,0.55)');
-        ov.addColorStop(0.38,'rgba(0,0,0,0.18)');
-        ov.addColorStop(0.62,'rgba(0,0,0,0.28)');
-        ov.addColorStop(1,   'rgba(0,0,0,0.82)');
+        ov.addColorStop(0,    'rgba(0,0,0,0.45)');
+        ov.addColorStop(0.30, 'rgba(0,0,0,0.10)');
+        ov.addColorStop(0.65, 'rgba(0,0,0,0.10)');
+        ov.addColorStop(1,    'rgba(0,0,0,0.55)');
         ctx.fillStyle = ov;
         ctx.fillRect(0, 0, SIZE, SIZE);
       } else {
@@ -20511,87 +20519,127 @@ window.qr2Compartir  = qr2Compartir;
       _gcFondoDegradado(ctx, SIZE, brandColor);
     }
 
-    // ── 3. Franja inferior de marca ─────────────────────────
-    const franjaH = 110;
+    // ── 3. Franja inferior de marca ──────────────────────────
+    const franjaH = 100;
     const franjaY = SIZE - franjaH;
     const fg = ctx.createLinearGradient(0, franjaY, SIZE, SIZE);
-    fg.addColorStop(0, brandColor + 'EE');
-    fg.addColorStop(1, _gcDarken(brandColor, 0.35) + 'EE');
+    fg.addColorStop(0, brandColor);
+    fg.addColorStop(1, brandDark);
     ctx.fillStyle = fg;
     ctx.fillRect(0, franjaY, SIZE, franjaH);
 
-    // ── 4. Logo ─────────────────────────────────────────────
-    let logoH = 0;
+    // ── 4. Logo circular (esquina superior izquierda) ────────
+    const logoPad = 40;
+    const logoSize = 100;
+    let logoDrawnH = 0;
     if (logoSrc) {
       const logo = await _loadImg(logoSrc);
       if (logo) {
-        const maxLogoH = 90, maxLogoW = 200;
-        const lr = logo.naturalWidth / logo.naturalHeight;
-        let lw = maxLogoH * lr, lh = maxLogoH;
-        if (lw > maxLogoW) { lw = maxLogoW; lh = lw / lr; }
-        const lx = 48, ly = 48;
-        // Sombra suave
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur  = 18;
-        ctx.drawImage(logo, lx, ly, lw, lh);
+        // Círculo blanco de fondo
+        ctx.shadowColor = 'rgba(0,0,0,0.35)';
+        ctx.shadowBlur  = 14;
+        ctx.fillStyle   = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(logoPad + logoSize/2, logoPad + logoSize/2, logoSize/2 + 6, 0, Math.PI*2);
+        ctx.fill();
         ctx.restore();
-        logoH = lh + 20;
+        // Clip circular para el logo
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(logoPad + logoSize/2, logoPad + logoSize/2, logoSize/2, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(logo, logoPad, logoPad, logoSize, logoSize);
+        ctx.restore();
+        logoDrawnH = logoPad + logoSize + 20;
       }
     }
 
-    // ── 5. Nombre del restaurante (franja inferior) ─────────
+    // ── 5. Panel de texto con fondo semitransparente ─────────
+    const padX    = 44;
+    const panelMarginTop = Math.max(logoDrawnH + 20, logoPad + 20);
+    const panelMarginBot = franjaH + 28;
+
+    // Preparar líneas del texto para calcular altura real necesaria
+    const textoLimpio = textoRaw.replace(/\*\*?([^*]+)\*\*?/g, '$1');
+    const lineasRaw   = textoLimpio.split('\n');
+    const maxW        = SIZE - padX * 2 - 40; // ancho máximo del texto
+
+    // Calcular font size adaptativo
+    const espacioDisp = SIZE - panelMarginTop - panelMarginBot - 60;
+    const numLineasEst = lineasRaw.reduce((acc, l) => acc + (l.trim() ? Math.ceil((l.length * 9) / maxW) || 1 : 0.6), 0);
+    const fontSz = Math.min(38, Math.max(20, Math.floor(espacioDisp / (numLineasEst * 1.6))));
+    const lineH  = fontSz * 1.6;
+
+    ctx.font = `${fontSz}px Inter, Arial, sans-serif`;
+
+    // Calcular líneas reales con word-wrap
+    const lineasFinal = [];
+    for (const linea of lineasRaw) {
+      if (!linea.trim()) { lineasFinal.push(''); continue; }
+      const palabras = linea.split(' ');
+      let actual = '';
+      for (const pal of palabras) {
+        const prueba = actual ? actual + ' ' + pal : pal;
+        if (ctx.measureText(prueba).width > maxW && actual) {
+          lineasFinal.push(actual); actual = pal;
+        } else { actual = prueba; }
+      }
+      if (actual) lineasFinal.push(actual);
+    }
+
+    const panelH   = lineasFinal.length * lineH + 48;
+    const panelY   = panelMarginTop;
+    const panelX   = padX - 20;
+    const panelW   = SIZE - (padX - 20) * 2;
+
+    // Fondo del panel: negro semitransparente con bordes redondeados
     ctx.save();
-    ctx.font = 'bold 38px Inter, Arial, sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur  = 8;
-    ctx.fillText(nombre, 48, franjaY + 52);
+    ctx.globalAlpha = 0.62;
+    ctx.fillStyle   = '#000000';
+    _gcRoundRect(ctx, panelX, panelY, panelW, Math.min(panelH, SIZE - panelMarginBot - panelY - 10), 18);
+    ctx.fill();
     ctx.restore();
 
-    // ── 6. Texto del post ────────────────────────────────────
-    const textoPadX = 52;
-    const textoMaxW  = SIZE - textoPadX * 2 - (qrCanvas ? 200 : 0);
-    const textoStartY = Math.max(logoH + 80, 200);
-    const textoEndY   = franjaY - 30;
-
-    // Calcular tamaño de fuente adaptativo
-    const disponible = textoEndY - textoStartY;
-    const lineas = textoRaw.replace(/\*\*?([^*]+)\*\*?/g,'$1').split('\n').filter(l => l.trim());
-    const fontSz = Math.min(36, Math.max(22, Math.floor(disponible / (lineas.length + 2) * 0.72)));
-    const lineH  = fontSz * 1.55;
-
+    // Texto blanco sobre el panel
     ctx.save();
     ctx.font      = `${fontSz}px Inter, Arial, sans-serif`;
     ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-    ctx.shadowBlur  = 10;
-    _gcDrawWrappedText(ctx, textoRaw, textoPadX, textoStartY, textoMaxW, lineH);
+    ctx.shadowColor = 'rgba(0,0,0,0.0)'; // sin sombra extra — el panel ya da contraste
+    let ty = panelY + 36;
+    for (const linea of lineasFinal) {
+      if (ty + lineH > SIZE - panelMarginBot - 10) break;
+      if (!linea) { ty += lineH * 0.5; continue; }
+      ctx.fillText(linea, padX, ty);
+      ty += lineH;
+    }
     ctx.restore();
 
-    // ── 7. QR de domicilio (esquina inferior derecha) ────────
+    // ── 6. Nombre del restaurante en la franja ───────────────
+    ctx.save();
+    ctx.font      = `bold ${Math.min(46, Math.max(28, Math.floor(franjaH * 0.44))}px Inter, Arial, sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur  = 6;
+    // Centrar verticalmente en la franja
+    ctx.textBaseline = 'middle';
+    const franjaTextX = logoSrc ? logoPad * 2 + logoSize + 16 : padX;
+    ctx.fillText(nombre, franjaTextX, franjaY + franjaH / 2);
+    ctx.restore();
+
+    // ── 7. QR domicilio en esquina superior derecha ──────────
     if (qrCanvas) {
-      const qrSize = 160;
-      const qrX = SIZE - qrSize - 48;
-      const qrY = franjaY - qrSize - 16;
-      // Fondo blanco redondeado
+      const qrSize = 140;
+      const qrX = SIZE - qrSize - 40;
+      const qrY = 40;
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur  = 16;
-      _gcRoundRect(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 16);
+      ctx.shadowBlur  = 12;
+      _gcRoundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 14);
       ctx.fillStyle = '#ffffff';
       ctx.fill();
       ctx.restore();
       ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
-      // Etiqueta
-      ctx.save();
-      ctx.font      = 'bold 20px Inter, Arial, sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur  = 6;
-      ctx.fillText('🛵 Pide a domicilio', qrX + qrSize / 2, qrY + qrSize + 36);
-      ctx.restore();
     }
 
     // ── 8. Descargar / Compartir ─────────────────────────────
@@ -20608,7 +20656,6 @@ window.qr2Compartir  = qr2Compartir;
         }
       } catch(e) { if (e.name === 'AbortError') return; }
     }
-    // Fallback: descarga directa
     const a = document.createElement('a');
     a.download = fileName;
     a.href = dataUrl;
