@@ -2429,6 +2429,15 @@
   .user-mgmt-item.deshabilitado { opacity: 0.45; }
   .user-mgmt-item.deshabilitado .user-mgmt-name { text-decoration: line-through; }
 
+  /* Precios dentro del acordeón verde azulado — mejor contraste */
+  #cfgacc-precios .precio-item { border-bottom-color: rgba(255,255,255,0.15); }
+  #cfgacc-precios .precio-nombre { color: #fff; }
+
+
+  #cfgacc-productos .user-mgmt-item { border-bottom-color: rgba(255,255,255,0.15); }
+  #cfgacc-productos .user-mgmt-name { color: #fff; }
+  #cfgacc-productos .user-mgmt-sub  { color: rgba(255,255,255,0.75); }
+
   /* Modal usuario */
   .modal-usuarios { padding-bottom: 36px; }
   .form-row { margin-bottom: 13px; }
@@ -2723,7 +2732,7 @@
   #cfgacc-backup      { background: #4527A0; }   /* índigo — backup            */
   #cfgacc-storage     { background: #00695C; }   /* verde oscuro — storage     */
   #cfgacc-productos   { background: #AD1457; }   /* rosa — productos           */
-  #cfgacc-precios     { background: #558B2F; }   /* verde oliva — precios      */
+  #cfgacc-precios     { background: #00695C; }   /* verde azulado — precios    */
   #cfgacc-cats        { background: #1565C0; }   /* azul — categorías          */
   #cfgacc-diseno      { background: #6D4C41; }   /* café — diseño              */
 
@@ -4655,6 +4664,203 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
   </div>
 
 
+
+  <!-- ══ GENERADOR DE CONTENIDO ══ -->
+  <div class="cfg-acc" id="cfgacc-contenido" style="border:2px solid #004D40;border-radius:14px;overflow:hidden;margin-bottom:10px;">
+    <div class="cfg-acc-header" data-cfgacc="cfgacc-contenido" style="background:linear-gradient(135deg,#00897B,#004D40);border-radius:0;">
+      <div class="cfg-acc-left">
+        <span class="cfg-acc-icon" style="font-size:22px;">✍️</span>
+        <div>
+          <div class="cfg-acc-title" style="color:#fff;">Generador de Contenido</div>
+          <div class="cfg-acc-sub" style="color:rgba(255,255,255,0.70);">Posts · Menú · Promociones · WhatsApp</div>
+        </div>
+      </div>
+      <span class="cfg-acc-arrow" style="color:#fff;">▼</span>
+    </div>
+    <div class="cfg-acc-body" style="background:rgba(0,137,123,0.04);">
+      <div class="cfg-acc-inner" style="padding:0;">
+
+        <!-- Sub-tabs tipo de contenido -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:12px 12px 0;">
+          <div class="gc-tipo-tab" data-tipo="instagram" onclick="gcSelTipo(this)" style="padding:10px 8px;border-radius:10px;border:2px solid #00897B;background:#00897B;cursor:pointer;text-align:center;font-size:12px;font-weight:600;color:#fff;transition:all 0.2s;">
+            <div style="font-size:18px;margin-bottom:3px;">📱</div>Instagram / FB
+          </div>
+          <div class="gc-tipo-tab" data-tipo="descripcion" onclick="gcSelTipo(this)" style="padding:10px 8px;border-radius:10px;border:2px solid var(--borde);background:var(--gris-cl);cursor:pointer;text-align:center;font-size:12px;font-weight:600;color:var(--gris-osc);transition:all 0.2s;">
+            <div style="font-size:18px;margin-bottom:3px;">🍽️</div>Descripción plato
+          </div>
+          <div class="gc-tipo-tab" data-tipo="promocion" onclick="gcSelTipo(this)" style="padding:10px 8px;border-radius:10px;border:2px solid var(--borde);background:var(--gris-cl);cursor:pointer;text-align:center;font-size:12px;font-weight:600;color:var(--gris-osc);transition:all 0.2s;">
+            <div style="font-size:18px;margin-bottom:3px;">🎉</div>Promoción / Oferta
+          </div>
+          <div class="gc-tipo-tab" data-tipo="whatsapp" onclick="gcSelTipo(this)" style="padding:10px 8px;border-radius:10px;border:2px solid var(--borde);background:var(--gris-cl);cursor:pointer;text-align:center;font-size:12px;font-weight:600;color:var(--gris-osc);transition:all 0.2s;">
+            <div style="font-size:18px;margin-bottom:3px;">💬</div>WhatsApp
+          </div>
+        </div>
+
+        <!-- Formulario -->
+        <div style="padding:12px;">
+
+          <!-- Campo nombre restaurante (lectura automática) -->
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">🏪 Restaurante</label>
+            <input class="config-input" id="gc-restaurante-nombre" placeholder="Cargando..." readonly
+              style="background:rgba(0,137,123,0.07);border-color:rgba(0,137,123,0.25);color:var(--negro);font-weight:700;cursor:default;" />
+          </div>
+
+          <!-- Buscador de platos -->
+          <div style="margin-bottom:4px;">
+            <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">🔍 Buscar plato del menú</label>
+            <div style="position:relative;">
+              <input class="config-input" id="gc-buscar-plato"
+                placeholder="Escribe para buscar..."
+                oninput="gcBuscarPlato(this.value)"
+                autocomplete="off"
+                style="margin:0;width:100%;padding-right:36px;" />
+              <button onclick="gcLimpiarBusqueda()" id="gc-buscar-clear"
+                style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;cursor:pointer;color:var(--gris);padding:4px;line-height:1;">✕</button>
+            </div>
+            <!-- Dropdown resultados -->
+            <div id="gc-buscar-dropdown" style="display:none;background:var(--blanco);border:1.5px solid rgba(0,137,123,0.3);border-radius:10px;margin-top:4px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12);max-height:200px;overflow-y:auto;"></div>
+          </div>
+
+          <!-- Plato seleccionado (chip) -->
+          <div id="gc-plato-chip" style="display:none;margin-bottom:10px;margin-top:6px;">
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,137,123,0.09);border:1.5px solid rgba(0,137,123,0.30);border-radius:10px;padding:8px 10px;">
+              <span style="font-size:16px;">🍽️</span>
+              <div style="flex:1;min-width:0;">
+                <div id="gc-plato-chip-nombre" style="font-size:13px;font-weight:700;color:var(--negro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+              </div>
+              <button onclick="gcLimpiarBusqueda()" style="background:none;border:none;font-size:14px;cursor:pointer;color:var(--gris);padding:2px;flex-shrink:0;">✕</button>
+            </div>
+          </div>
+
+          <!-- Campo plato manual (fallback si no busca) -->
+          <input type="hidden" id="gc-plato" />
+
+          <!-- Foto del plato -->
+          <input type="file" id="gc-foto-input" accept="image/*" style="display:none;" onchange="gcFotoInputChange(this)">
+          <div id="gc-foto-wrap" style="display:none;margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:6px;">📷 Foto del plato</label>
+            <div style="position:relative;border-radius:14px;overflow:hidden;border:1.5px solid rgba(0,137,123,0.25);background:rgba(0,137,123,0.05);">
+              <!-- Imagen real -->
+              <img id="gc-foto-img" src="" alt="Foto del plato"
+                style="display:none;width:100%;max-height:180px;object-fit:cover;">
+              <!-- Placeholder cuando no hay foto -->
+              <div id="gc-foto-placeholder"
+                style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100px;gap:4px;color:var(--gris);">
+                <span style="font-size:28px;">🍽️</span>
+                <span style="font-size:11px;font-weight:600;">Sin foto</span>
+              </div>
+              <!-- Barra de acciones superpuesta -->
+              <div style="position:absolute;bottom:0;left:0;right:0;display:flex;gap:6px;padding:8px;background:linear-gradient(to top,rgba(0,0,0,0.55),transparent);">
+                <button onclick="gcFotoCambiar()"
+                  style="flex:1;padding:6px 0;border-radius:8px;border:none;background:rgba(255,255,255,0.92);color:#00695C;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">
+                  📷 Cambiar foto
+                </button>
+                <button onclick="gcFotoQuitar()"
+                  style="padding:6px 10px;border-radius:8px;border:none;background:rgba(229,57,53,0.85);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Precio con toggle mostrar/ocultar -->
+          <div style="margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+              <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;">💰 Precio</label>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span id="gc-precio-toggle-label" style="font-size:11px;font-weight:600;color:var(--gris);">Incluir</span>
+                <label style="position:relative;width:36px;height:20px;display:inline-block;cursor:pointer;">
+                  <input type="checkbox" id="gc-precio-toggle" checked onchange="gcTogglePrecio(this)"
+                    style="opacity:0;width:0;height:0;position:absolute;">
+                  <span id="gc-precio-slider"
+                    style="position:absolute;inset:0;border-radius:20px;background:#00897B;transition:background 0.2s;">
+                    <span style="position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform 0.2s;transform:translateX(16px);display:block;"></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div style="position:relative;">
+              <input class="config-input" id="gc-precio"
+                placeholder="Ej: $28.000 o 2x$45.000"
+                style="margin:0;width:100%;transition:opacity 0.2s,background 0.3s,border-color 0.3s;padding-right:90px;"
+                oninput="gcPrecioManualEdit()" />
+              <span id="gc-precio-auto-badge"
+                style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);
+                  background:#00897B;color:#fff;font-size:9px;font-weight:700;letter-spacing:0.8px;
+                  padding:2px 7px;border-radius:20px;pointer-events:none;white-space:nowrap;">
+                ✓ AUTO
+              </span>
+            </div>
+          </div>
+
+          <!-- Campos contextuales -->
+          <div id="gc-campos-instagram" class="gc-campos-extra" style="display:block;margin-bottom:10px;">
+            <label style="font-size:11px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">Hashtags (opcional)</label>
+            <input class="config-input" id="gc-hashtags" placeholder="Ej: comidacolombiana almuerzo" style="margin:0;width:100%;">
+          </div>
+          <div id="gc-campos-descripcion" class="gc-campos-extra" style="display:none;margin-bottom:10px;">
+            <label style="font-size:11px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">Ingredientes principales</label>
+            <input class="config-input" id="gc-ingredientes" placeholder="Ej: fríjoles, chicharrón, arepa..." style="margin:0;width:100%;">
+          </div>
+          <div id="gc-campos-promocion" class="gc-campos-extra" style="display:none;">
+            <div style="margin-bottom:10px;">
+              <label style="font-size:11px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">Detalles de la promoción</label>
+              <input class="config-input" id="gc-promo-detalle" placeholder="Ej: 2x1 en bebidas los viernes" style="margin:0;width:100%;">
+            </div>
+            <div style="margin-bottom:10px;">
+              <label style="font-size:11px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">Vigencia (opcional)</label>
+              <input class="config-input" id="gc-vigencia" placeholder="Ej: solo este fin de semana" style="margin:0;width:100%;">
+            </div>
+          </div>
+          <div id="gc-campos-whatsapp" class="gc-campos-extra" style="display:none;margin-bottom:10px;">
+            <label style="font-size:11px;font-weight:600;color:var(--gris);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">¿A quién va dirigido?</label>
+            <select class="config-input" id="gc-destinatario" style="margin:0;width:100%;appearance:auto;-webkit-appearance:auto;cursor:pointer;">
+              <option value="cliente">Cliente frecuente</option>
+              <option value="nuevo">Cliente nuevo</option>
+              <option value="grupo">Grupo de clientes</option>
+              <option value="delivery">Cliente de domicilio</option>
+            </select>
+          </div>
+
+          <!-- Tono -->
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:7px;">Tono</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <div class="gc-tono-pill" data-tono="amigable" onclick="gcSelTono(this)" style="padding:6px 12px;border-radius:16px;border:1.5px solid #00897B;background:#00897B;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">😊 Amigable</div>
+              <div class="gc-tono-pill" data-tono="elegante" onclick="gcSelTono(this)" style="padding:6px 12px;border-radius:16px;border:1.5px solid var(--borde);background:var(--gris-cl);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;color:var(--gris-osc);">✨ Elegante</div>
+              <div class="gc-tono-pill" data-tono="festivo" onclick="gcSelTono(this)" style="padding:6px 12px;border-radius:16px;border:1.5px solid var(--borde);background:var(--gris-cl);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;color:var(--gris-osc);">🎊 Festivo</div>
+              <div class="gc-tono-pill" data-tono="apetitoso" onclick="gcSelTono(this)" style="padding:6px 12px;border-radius:16px;border:1.5px solid var(--borde);background:var(--gris-cl);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;color:var(--gris-osc);">🤤 Apetitoso</div>
+              <div class="gc-tono-pill" data-tono="urgente" onclick="gcSelTono(this)" style="padding:6px 12px;border-radius:16px;border:1.5px solid var(--borde);background:var(--gris-cl);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;color:var(--gris-osc);">🔥 Urgente</div>
+            </div>
+          </div>
+
+          <!-- Cantidad -->
+          <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+            <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;">Versiones:</label>
+            <button onclick="gcCambiarCantidad(-1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(0,137,123,0.35);background:rgba(0,137,123,0.08);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:#00897B;">−</button>
+            <span id="gc-cantidad-num" style="font-size:18px;font-weight:800;min-width:24px;text-align:center;color:var(--negro);">3</span>
+            <button onclick="gcCambiarCantidad(1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(0,137,123,0.35);background:rgba(0,137,123,0.08);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:#00897B;">+</button>
+          </div>
+
+          <!-- Botón Generar -->
+          <button id="gc-btn-generar" onclick="gcGenerar()" style="width:100%;padding:14px;background:linear-gradient(135deg,#00897B,#004D40);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:0.3px;margin-bottom:12px;box-shadow:0 4px 14px rgba(0,137,123,0.35);">
+            ✦ Generar contenido
+          </button>
+
+          <!-- Resultados -->
+          <div id="gc-resultados" style="display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#00897B;">Resultados</div>
+              <button onclick="gcGenerar()" style="padding:6px 14px;border-radius:14px;border:1.5px solid #00897B;background:transparent;color:#00897B;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">↺ Regenerar</button>
+            </div>
+            <div id="gc-resultados-lista"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
 
       <button id="btnGuardarMenuFlotante" onclick="guardarMenuDesdeBotonFlotante()" style="position:relative;">
         <span>💾 Guardar cambios en el menú</span>
@@ -8916,18 +9122,47 @@ function renderPreciosConfig() {
       <div style="width:100px;font-size:11px;font-weight:700;color:#1565C0;text-align:center;text-transform:uppercase;letter-spacing:0.5px;">🛵 Dom.</div>
     </div>`;
 
-  const html = MENU.map((item) => {
-    const precioRest = Number(item.precio || 0).toLocaleString('es-CO');
-    const precioDom  = Number(item.precioDomicilio || item.precio || 0).toLocaleString('es-CO');
-    return `
-    <div class="precio-item">
-      <div class="precio-nombre">${esc(item.nombre)}<br><span style="font-size:11px;color:var(--gris)">${esc(item.categoria)}</span></div>
-      <input type="text" inputmode="numeric" class="precio-input precio-input-rest" data-nombre="${esc(item.nombre)}" value="${precioRest}" style="width:100px;" placeholder="0">
-      <input type="text" inputmode="numeric" class="precio-input precio-input-dom"  data-nombre="${esc(item.nombre)}" value="${precioDom}"  style="width:100px;border-color:#90CAF9;color:#1565C0;" placeholder="0">
-    </div>`;
-  }).join('');
+  // Agrupar por categoría
+  const grupos = {};
+  MENU.forEach(item => {
+    const cat = item.categoria || 'Sin categoría';
+    if (!grupos[cat]) grupos[cat] = [];
+    grupos[cat].push(item);
+  });
+  const cats = Object.keys(grupos);
 
-  el.innerHTML = header + html;
+  // Barra de filtro rápido (solo si hay >1 categoría)
+  const filtroBar = cats.length > 1 ? `
+    <div id="preciosCatFilter" style="display:flex;flex-wrap:wrap;gap:6px;padding:0 0 10px;border-bottom:1px solid rgba(255,255,255,0.15);margin-bottom:8px;">
+      <button onclick="preciosFiltrarCat(null,this)"
+        style="padding:4px 12px;border-radius:20px;border:none;background:rgba(255,255,255,0.9);
+          color:#00695C;font-size:11px;font-weight:700;cursor:pointer;">Todos</button>
+      ${cats.map(c => `
+        <button data-cat="${esc(c)}" onclick="preciosFiltrarCat(this.dataset.cat,this)"
+          style="padding:4px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.35);background:transparent;
+            color:rgba(255,255,255,0.85);font-size:11px;font-weight:600;cursor:pointer;">${esc(c)}</button>
+      `).join('')}
+    </div>` : '';
+
+  const grupos_html = Object.entries(grupos).map(([cat, items]) => `
+    <div class="precios-cat-grupo" data-cat="${esc(cat)}" style="margin-bottom:6px;">
+      <div style="padding:4px 0 3px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;
+        color:rgba(255,255,255,0.55);border-bottom:1px solid rgba(255,255,255,0.15);margin-bottom:2px;">
+        ${esc(cat)} <span style="font-weight:500;opacity:0.7;">(${items.length})</span>
+      </div>
+      ${items.map(item => {
+        const precioRest = Number(item.precio || 0).toLocaleString('es-CO');
+        const precioDom  = Number(item.precioDomicilio || item.precio || 0).toLocaleString('es-CO');
+        return `
+        <div class="precio-item">
+          <div class="precio-nombre">${esc(item.nombre)}</div>
+          <input type="text" inputmode="numeric" class="precio-input precio-input-rest" data-nombre="${esc(item.nombre)}" value="${precioRest}" style="width:100px;" placeholder="0">
+          <input type="text" inputmode="numeric" class="precio-input precio-input-dom"  data-nombre="${esc(item.nombre)}" value="${precioDom}"  style="width:100px;border-color:#90CAF9;color:#1565C0;" placeholder="0">
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  el.innerHTML = header + filtroBar + grupos_html;
 
   // Formatear mientras escribe
   el.querySelectorAll('.precio-input').forEach(input => {
@@ -12396,6 +12631,39 @@ document.addEventListener('keydown', function(e) {
   else if (e.key === 'Enter') pinEnter();
 });
 
+// ── FILTROS DE CATEGORÍA EN ACORDEONES ───────────────────────────────
+window.prodFiltrarCat = function(cat, btn) {
+  // Actualizar botones activos
+  document.querySelectorAll('#prodCatFilter button').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = 'rgba(255,255,255,0.85)';
+    b.style.border = '1.5px solid rgba(255,255,255,0.35)';
+  });
+  btn.style.background = 'rgba(255,255,255,0.85)';
+  btn.style.color = '#AD1457';
+  btn.style.border = 'none';
+  // Mostrar/ocultar grupos
+  document.querySelectorAll('#productosList .prod-cat-grupo').forEach(g => {
+    g.style.display = (!cat || g.dataset.cat === cat) ? '' : 'none';
+  });
+};
+
+window.preciosFiltrarCat = function(cat, btn) {
+  // Actualizar botones activos
+  document.querySelectorAll('#preciosCatFilter button').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = 'rgba(255,255,255,0.85)';
+    b.style.border = '1.5px solid rgba(255,255,255,0.35)';
+  });
+  btn.style.background = 'rgba(255,255,255,0.9)';
+  btn.style.color = '#00695C';
+  btn.style.border = 'none';
+  // Mostrar/ocultar grupos
+  document.querySelectorAll('#preciosLista .precios-cat-grupo').forEach(g => {
+    g.style.display = (!cat || g.dataset.cat === cat) ? '' : 'none';
+  });
+};
+
 // ── GESTIÓN DE PRODUCTOS ─────────────────────────────────────────────
 let editProdIdx = -1; // -1 = nuevo, >=0 = editar
 
@@ -12408,25 +12676,55 @@ function renderProductosConfig() {
     list.innerHTML = '<p style="font-size:13px;color:var(--gris);text-align:center;padding:16px 0;">Sin productos. Agrega el primero.</p>';
     return;
   }
-  list.innerHTML = MENU.map((item, idx) => `
-    <div class="user-mgmt-item">
-      ${item.foto
-        ? `<img src="${item.foto}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;" alt="">`
-        : `<div style="width:44px;height:44px;border-radius:10px;background:var(--fondo);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🍽️</div>`
-      }
-      <div class="user-mgmt-info" style="flex:1;min-width:0;">
-        <div class="user-mgmt-name" style="font-size:14px;">${esc(item.nombre)}</div>
-        <div class="user-mgmt-sub" style="display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap;">
-          <span style="background:#f0f8f1;color:var(--rappi);border:1px solid rgba(255,68,26,0.15);border-radius:20px;padding:1px 8px;font-size:10px;font-weight:600;">${esc(item.categoria)}</span>
-          <span style="font-family:var(--font-num);font-size:12px;font-weight:700;color:var(--rappi);">${fmt(item.precio)}</span>
-          ${item.descripcion ? `<span style="font-size:10px;color:var(--gris);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;">${esc(item.descripcion)}</span>` : ''}
-        </div>
+  // Agrupar por categoría manteniendo el índice original del MENU
+  const grupos = {};
+  MENU.forEach((item, idx) => {
+    const cat = item.categoria || 'Sin categoría';
+    if (!grupos[cat]) grupos[cat] = [];
+    grupos[cat].push({ item, idx });
+  });
+  const cats = Object.keys(grupos);
+
+  // Barra de filtro rápido (solo si hay >1 categoría)
+  const filtroBar = cats.length > 1 ? `
+    <div id="prodCatFilter" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px;border-bottom:1px solid rgba(255,255,255,0.12);margin-bottom:8px;">
+      <button onclick="prodFiltrarCat(null,this)"
+        style="padding:4px 12px;border-radius:20px;border:none;background:rgba(255,255,255,0.85);
+          color:#AD1457;font-size:11px;font-weight:700;cursor:pointer;">Todos</button>
+      ${cats.map(c => `
+        <button data-cat="${esc(c)}" onclick="prodFiltrarCat(this.dataset.cat,this)"
+          style="padding:4px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.35);background:transparent;
+            color:rgba(255,255,255,0.85);font-size:11px;font-weight:600;cursor:pointer;">${esc(c)}</button>
+      `).join('')}
+    </div>` : '';
+
+  const grupos_html = Object.entries(grupos).map(([cat, items]) => `
+    <div class="prod-cat-grupo" data-cat="${esc(cat)}" style="margin-bottom:6px;">
+      <div style="padding:5px 0 4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;
+        color:rgba(255,255,255,0.55);border-bottom:1px solid rgba(255,255,255,0.15);margin-bottom:2px;">
+        ${esc(cat)} <span style="font-weight:500;opacity:0.7;">(${items.length})</span>
       </div>
-      <div class="user-mgmt-btns">
-        <button class="user-mgmt-btn" onclick="abrirEditarProducto(${idx})">✏️</button>
-        <button class="user-mgmt-btn del" onclick="eliminarProducto(${idx})">🗑️</button>
-      </div>
+      ${items.map(({ item, idx }) => `
+        <div class="user-mgmt-item">
+          ${item.foto
+            ? `<img src="${item.foto}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;" alt="">`
+            : `<div style="width:44px;height:44px;border-radius:10px;background:var(--fondo);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🍽️</div>`
+          }
+          <div class="user-mgmt-info" style="flex:1;min-width:0;">
+            <div class="user-mgmt-name" style="font-size:14px;">${esc(item.nombre)}</div>
+            <div class="user-mgmt-sub" style="display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap;">
+              <span style="font-family:var(--font-num);font-size:12px;font-weight:700;color:#fff;">${fmt(item.precio)}</span>
+              ${item.descripcion ? `<span style="font-size:10px;color:rgba(255,255,255,0.6);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;">${esc(item.descripcion)}</span>` : ''}
+            </div>
+          </div>
+          <div class="user-mgmt-btns">
+            <button class="user-mgmt-btn" onclick="abrirEditarProducto(${idx})">✏️</button>
+            <button class="user-mgmt-btn del" onclick="eliminarProducto(${idx})">🗑️</button>
+          </div>
+        </div>`).join('')}
     </div>`).join('');
+
+  list.innerHTML = filtroBar + grupos_html;
 }
 
 let editProdFotoData = ''; // base64 de la foto en edición
@@ -19578,6 +19876,422 @@ window.qr2Generar    = qr2Generar;
 window.qr2CopiarUrl  = qr2CopiarUrl;
 window.qr2Descargar  = qr2Descargar;
 window.qr2Compartir  = qr2Compartir;
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// GENERADOR DE CONTENIDO — integrado en Editar Menú
+// ════════════════════════════════════════════════════════════
+(function() {
+
+  // ── Estado ──────────────────────────────────────────────
+  let _gcTipo = 'instagram';
+  let _gcTono = 'amigable';
+  let _gcCantidad = 3;
+  let _gcPrecioVisible = true;
+
+  // ── Obtener nombre del restaurante (siempre desde pos_config.nombre) ──
+  function gcGetNombre() {
+    try {
+      const s = JSON.parse(localStorage.getItem('pos_config') || '{}');
+      if (s.nombre) return s.nombre;
+    } catch(e) {}
+    try {
+      const s = JSON.parse(localStorage.getItem('pos_menu_settings') || '{}');
+      if (s.restaurantName) return s.restaurantName;
+    } catch(e) {}
+    // Leer directamente del campo de config si está en el DOM
+    const cfgEl = document.getElementById('cfgNombre');
+    if (cfgEl && cfgEl.value.trim()) return cfgEl.value.trim();
+    return 'Nuestro restaurante';
+  }
+
+  // ── Sincronizar campo nombre ─────────────────────────────
+  function gcSyncNombre() {
+    const el = document.getElementById('gc-restaurante-nombre');
+    if (el) el.value = gcGetNombre();
+  }
+
+  // ── Buscador de platos ───────────────────────────────────
+  window.gcBuscarPlato = function(q) {
+    const clearBtn = document.getElementById('gc-buscar-clear');
+    const dropdown = document.getElementById('gc-buscar-dropdown');
+    if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+    if (!dropdown) return;
+    if (!q || q.length < 1) { dropdown.style.display = 'none'; return; }
+
+    // Obtener items del MENU global
+    const menu = (typeof MENU !== 'undefined' && Array.isArray(MENU)) ? MENU : [];
+    const qLow = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const resultados = menu.filter(item => {
+      if (!item || !item.nombre) return false;
+      const n = item.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      return n.includes(qLow);
+    }).slice(0, 8);
+
+    if (resultados.length === 0) {
+      dropdown.innerHTML = `<div style="padding:12px;font-size:13px;color:var(--gris);text-align:center;">Sin resultados para "${q}"</div>`;
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = resultados.map((item, i) => {
+      const precio = item.precio ? gcFormatPrecio(item.precio) : '';
+      const foto = item.foto || '';
+      const fotoAttr = foto ? ` data-foto="${esc(foto)}"` : '';
+      return `<div onclick="gcSeleccionarPlato('${esc(item.nombre)}','${esc(precio)}',this.dataset.foto||'')"${fotoAttr}
+        style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--borde);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background 0.15s;"
+        onmouseover="this.style.background='rgba(21,101,192,0.07)'"
+        onmouseout="this.style.background='transparent'">
+        ${foto ? `<img src="${esc(foto)}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;">` : `<span style="font-size:20px;flex-shrink:0;">🍽️</span>`}
+        <span style="font-size:13px;font-weight:600;color:var(--negro);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(item.nombre)}</span>
+        ${precio ? `<span style="font-size:12px;font-weight:700;color:#1565C0;white-space:nowrap;">${precio}</span>` : ''}
+      </div>`;
+    }).join('');
+    dropdown.style.display = 'block';
+  };
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function gcFormatPrecio(p) {
+    if (!p && p !== 0) return '';
+    const n = parseInt(p);
+    if (isNaN(n)) return String(p);
+    return '$' + n.toLocaleString('es-CO');
+  }
+
+  window.gcSeleccionarPlato = function(nombre, precio, foto) {
+    // Llenar campo oculto
+    const platoInput = document.getElementById('gc-plato');
+    if (platoInput) platoInput.value = nombre;
+    // Llenar precio si está vacío o venía del buscador anterior
+    const precioInput = document.getElementById('gc-precio');
+    if (precioInput && precio) {
+      precioInput.value = precio;
+      precioInput.style.background = 'rgba(0,137,123,0.13)';
+      precioInput.style.borderColor = '#00897B';
+      precioInput.style.color = '#00695C';
+      const badge = document.getElementById('gc-precio-auto-badge');
+      if (badge) badge.style.display = 'inline-block';
+    }
+    // Mostrar chip
+    const chip = document.getElementById('gc-plato-chip');
+    const chipNombre = document.getElementById('gc-plato-chip-nombre');
+    if (chip && chipNombre) {
+      chipNombre.textContent = nombre + (precio ? ' · ' + precio : '');
+      chip.style.display = 'block';
+    }
+    // Mostrar foto del plato
+    _gcSetFoto(foto || '');
+    // Limpiar buscador
+    const buscar = document.getElementById('gc-buscar-plato');
+    if (buscar) buscar.value = '';
+    const dropdown = document.getElementById('gc-buscar-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    const clearBtn = document.getElementById('gc-buscar-clear');
+    if (clearBtn) clearBtn.style.display = 'none';
+  };
+
+  // ── Foto del plato en el generador ───────────────────────
+  window._gcFotoActual = '';
+
+  window._gcSetFoto = function(src) {
+    window._gcFotoActual = src || '';
+    const wrap = document.getElementById('gc-foto-wrap');
+    const img  = document.getElementById('gc-foto-img');
+    const placeholder = document.getElementById('gc-foto-placeholder');
+    if (!wrap) return;
+    wrap.style.display = 'block';
+    if (src) {
+      if (img) { img.src = src; img.style.display = 'block'; }
+      if (placeholder) placeholder.style.display = 'none';
+    } else {
+      if (img) { img.src = ''; img.style.display = 'none'; }
+      if (placeholder) placeholder.style.display = 'flex';
+    }
+  };
+
+  window.gcFotoCambiar = function() {
+    document.getElementById('gc-foto-input')?.click();
+  };
+
+  window.gcFotoInputChange = function(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) { _gcSetFoto(e.target.result); };
+    reader.readAsDataURL(file);
+    input.value = '';
+  };
+
+  window.gcFotoQuitar = function() {
+    _gcSetFoto('');
+    const wrap = document.getElementById('gc-foto-wrap');
+    if (wrap) wrap.style.display = 'none';
+  };
+
+  window.gcLimpiarBusqueda = function() {
+    const platoInput = document.getElementById('gc-plato');
+    if (platoInput) platoInput.value = '';
+    const precioInput = document.getElementById('gc-precio');
+    if (precioInput) {
+      precioInput.value = '';
+      precioInput.style.background = '';
+      precioInput.style.borderColor = '';
+      precioInput.style.color = '';
+      const badge = document.getElementById('gc-precio-auto-badge');
+      if (badge) badge.style.display = 'none';
+    }
+    const chip = document.getElementById('gc-plato-chip');
+    if (chip) chip.style.display = 'none';
+    // Ocultar foto
+    const fotoWrap = document.getElementById('gc-foto-wrap');
+    if (fotoWrap) fotoWrap.style.display = 'none';
+    window._gcFotoActual = '';
+    const buscar = document.getElementById('gc-buscar-plato');
+    if (buscar) { buscar.value = ''; buscar.focus(); }
+    const dropdown = document.getElementById('gc-buscar-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    const clearBtn = document.getElementById('gc-buscar-clear');
+    if (clearBtn) clearBtn.style.display = 'none';
+  };
+
+  // Cerrar dropdown al tocar fuera
+  document.addEventListener('click', function(e) {
+    const dd = document.getElementById('gc-buscar-dropdown');
+    const inp = document.getElementById('gc-buscar-plato');
+    if (dd && inp && !dd.contains(e.target) && e.target !== inp) {
+      dd.style.display = 'none';
+    }
+  });
+
+  // ── Toggle precio ────────────────────────────────────────
+  window.gcPrecioManualEdit = function() {
+    // Al editar manualmente, quitar el estilo de auto-carga
+    const precioInput = document.getElementById('gc-precio');
+    if (precioInput) {
+      precioInput.style.background = '';
+      precioInput.style.borderColor = '';
+      precioInput.style.color = '';
+    }
+    const badge = document.getElementById('gc-precio-auto-badge');
+    if (badge) badge.style.display = 'none';
+  };
+
+  window.gcTogglePrecio = function(cb) {
+    _gcPrecioVisible = cb.checked;
+    const precioInput = document.getElementById('gc-precio');
+    const label = document.getElementById('gc-precio-toggle-label');
+    const slider = document.getElementById('gc-precio-slider');
+    if (precioInput) precioInput.style.opacity = _gcPrecioVisible ? '1' : '0.4';
+    if (precioInput) precioInput.disabled = !_gcPrecioVisible;
+    if (label) label.textContent = _gcPrecioVisible ? 'Incluir' : 'Ocultar';
+    if (slider) slider.style.background = _gcPrecioVisible ? '#00897B' : '#9E9E9E';
+    const knob = slider?.querySelector('span');
+    if (knob) knob.style.transform = _gcPrecioVisible ? 'translateX(16px)' : 'translateX(0)';
+  };
+
+  // ── Selección tipo de contenido ──────────────────────────
+  window.gcSelTipo = function(el) {
+    _gcTipo = el.dataset.tipo;
+    document.querySelectorAll('.gc-tipo-tab').forEach(t => {
+      t.style.background = 'var(--gris-cl)';
+      t.style.border = '2px solid var(--borde)';
+      t.style.color = 'var(--gris-osc)';
+    });
+    el.style.background = '#00897B';
+    el.style.border = '2px solid #00897B';
+    el.style.color = '#fff';
+    document.querySelectorAll('.gc-campos-extra').forEach(c => c.style.display = 'none');
+    const campos = document.getElementById('gc-campos-' + _gcTipo);
+    if (campos) campos.style.display = 'block';
+  };
+
+  // ── Selección tono ───────────────────────────────────────
+  window.gcSelTono = function(el) {
+    _gcTono = el.dataset.tono;
+    document.querySelectorAll('.gc-tono-pill').forEach(p => {
+      p.style.background = 'var(--gris-cl)';
+      p.style.border = '1.5px solid var(--borde)';
+      p.style.color = 'var(--gris-osc)';
+    });
+    el.style.background = '#00897B';
+    el.style.border = '1.5px solid #00897B';
+    el.style.color = '#fff';
+  };
+
+  // ── Cantidad ─────────────────────────────────────────────
+  window.gcCambiarCantidad = function(delta) {
+    _gcCantidad = Math.min(5, Math.max(1, _gcCantidad + delta));
+    const el = document.getElementById('gc-cantidad-num');
+    if (el) el.textContent = _gcCantidad;
+  };
+
+  // ── Datos de plantillas ──────────────────────────────────
+  const _gcEmojis = ['🍽️','🌿','😋','🔥','⭐','💚','🌶️','🫕','🥘','✨','❤️','👨‍🍳'];
+  const _gcRand = a => a[Math.floor(Math.random() * a.length)];
+
+  const _gcAperturas = {
+    amigable: ['¡Hola! 👋','¿Ya tienes planes para hoy?','¡Buenas noticias para los amantes del buen sabor!','Queremos compartir algo delicioso con ustedes 💚','¡Hoy tienes un plan perfecto!'],
+    elegante: ['Una experiencia gastronómica que merece ser vivida.','Donde la tradición y el sabor se encuentran.','Bienvenido a una nueva dimensión del sabor.','El arte culinario hecho para ti.','Sofisticación y tradición en cada bocado.'],
+    festivo: ['🎉 ¡ATENCIÓN, ATENCIÓN!','¡Tenemos algo increíble para ti! 🥳','¡La fiesta del sabor comienza!','🎊 ¡Celebra con el mejor sabor!','¡Esto sí que es una razón para celebrar! 🎉'],
+    apetitoso: ['¿Se te hace agua la boca? 🤤','Imagina este sabor en tu paladar ahora mismo...','¡Ese aroma que llega desde la cocina! 😍','Crujiente por fuera, jugoso por dentro...','El sabor que has estado pensando todo el día. 🍽️'],
+    urgente: ['⚡ ¡SOLO POR HOY!','🔥 ATENCIÓN: tiempo limitado','⏰ ¡No te lo puedes perder!','🚨 ¡Corre, quedan pocos!','🔥 ¡OFERTA RELÁMPAGO!']
+  };
+
+  function _gcCierres(nombre) {
+    return {
+      instagram: [`\n\n📍 Visítanos y vívelo tú mismo.\n#${nombre.replace(/\s/g,'')}`,`\n\n👇 Reserva tu mesa en los comentarios.\n#Restaurante #ComidaCasera`,`\n\n¿Antojado? ¡Te esperamos con los brazos abiertos! 💚\n#${nombre.replace(/\s/g,'')}`],
+      whatsapp: ['\n\n¡Esperamos verte pronto! 😊','\n\nCualquier consulta, aquí estamos 💚',`\n\nCon cariño, el equipo de ${nombre} 🌿`],
+      descripcion: ['\n\n✦ Disponible en nuestro menú del día.','\n\nPídelo hoy y cuéntanos qué te pareció 😍','\n\n✦ Preparado con ingredientes frescos cada día.'],
+      promocion: ['\n\n¡No dejes pasar esta oportunidad! 💚','\n\nVálido hasta agotar disponibilidad.','\n\n📲 Muestra este mensaje al llegar.','\n\n¡Te esperamos! Reserva ya tu lugar.']
+    };
+  }
+
+  function _gcTexto(nombre, plato, precio, v) {
+    const aps = _gcAperturas[_gcTono] || _gcAperturas.amigable;
+    const apertura = aps[v % aps.length];
+    const cierres = _gcCierres(nombre);
+    const cierre = cierres[_gcTipo][v % cierres[_gcTipo].length];
+    const emoji = _gcRand(_gcEmojis);
+    // Respetar toggle de precio
+    const p = (_gcPrecioVisible && precio) ? precio : '';
+
+    if (_gcTipo === 'instagram') {
+      const hashtags = (document.getElementById('gc-hashtags')?.value || '').trim();
+      const hashStr = hashtags ? '\n#' + hashtags.replace(/[#,]/g,'').split(' ').join(' #') : '';
+      const pStr = p ? `\n\n💰 ${p}` : '';
+      const cuerpos = [
+        `Hoy te traemos lo que más amamos: *${plato}* ${emoji}\n\nPreparado con ingredientes frescos y todo el amor de nuestra cocina.${pStr}`,
+        `${emoji} *${plato}* — el favorito de nuestra mesa.\n\nSabor auténtico, porción generosa, precio justo.${pStr}`,
+        `Hay platos que te hacen cerrar los ojos al primer bocado. El *${plato}* es uno de ellos ${emoji}\n\n¿Te animas?${pStr}`,
+        `No hay mejor plan que una buena comida. 🍽️\n\nNuestra *${plato}* está lista para ti: recién hecha, con ingredientes de calidad.${pStr}`,
+        `*${plato}* ${emoji}\n\nAsí de simple. Así de delicioso. Sin complicaciones, solo sabor puro.${pStr}`,
+      ];
+      return `${apertura}\n\n${cuerpos[v % cuerpos.length]}${cierre}${hashStr}`;
+    }
+
+    if (_gcTipo === 'descripcion') {
+      const ings = (document.getElementById('gc-ingredientes')?.value || '').trim();
+      const ingStr = ings ? ` elaborado con ${ings}` : '';
+      const pStr = p ? `\n\n**Precio:** ${p}` : '';
+      const cuerpos = [
+        `Nuestra *${plato}*${ingStr} es un homenaje a la cocina tradicional. Cada elemento está cuidadosamente seleccionado para ofrecerte una experiencia completa de sabores y texturas.`,
+        `La *${plato}* de ${nombre}${ingStr} es mucho más que un plato: es una tradición. Preparada diariamente con los mejores ingredientes frescos.`,
+        `Un clásico reinventado. Nuestra *${plato}*${ingStr} combina la autenticidad de los sabores con la calidez de la cocina casera. Abundante, sabrosa y lista para satisfacer.`,
+        `¿Buscas un plato que te deje satisfecho y con ganas de volver? La *${plato}*${ingStr} de ${nombre} cumple esa promesa. Ingredientes frescos, sazón perfecta.`,
+      ];
+      return `${cuerpos[v % cuerpos.length]}${pStr}\n\n✦ Disponible en nuestro menú del día.`;
+    }
+
+    if (_gcTipo === 'promocion') {
+      const detalle = (document.getElementById('gc-promo-detalle')?.value || '').trim() || `descuento especial en ${plato}`;
+      const vigencia = (document.getElementById('gc-vigencia')?.value || '').trim();
+      const vigStr = vigencia ? `\n\n⏰ *Válido: ${vigencia}*` : '';
+      const pStr = p ? `\n💰 Por solo *${p}*` : '';
+      const cuerpos = [
+        `Tenemos una propuesta que no puedes rechazar: *${detalle}* 🎉\n\nEn ${nombre} queremos que disfrutes más y pagues menos.${pStr}${vigStr}`,
+        `¡SORPRESA! 🎊\n\nHoy activamos una promoción especial: *${detalle}*.\n\nEsta es tu señal para venir a ${nombre} y darte ese gusto.${pStr}${vigStr}`,
+        `Más sabor, mejor precio. Así es como funciona esto:\n\n🎯 *${detalle}*\n\nEn ${nombre} siempre encontrarás una razón para sonreír.${pStr}${vigStr}`,
+        `¿Sabías que en ${nombre} también cuidamos tu bolsillo? 💚\n\n*${detalle}* — porque queremos que sigas eligiéndonos.${pStr}${vigStr}`,
+      ];
+      return `${apertura}\n\n${cuerpos[v % cuerpos.length]}${cierre}`;
+    }
+
+    if (_gcTipo === 'whatsapp') {
+      const destinatario = document.getElementById('gc-destinatario')?.value || 'cliente';
+      const pStr2 = p ? ` a *${p}*` : '';
+      const saludos = { cliente: `Hola, querido cliente 🌿`, nuevo: `Bienvenido a ${nombre} 🌿`, grupo: 'Hola a todos 👋', delivery: '¡Gracias por tu pedido! 🛵' };
+      const cuerpos = {
+        cliente: [`Como siempre agradecemos tu preferencia, hoy tenemos *${plato}*${pStr2} disponible. ¡Sabemos que te va a encantar!`,`Pensamos en ti y en lo mucho que disfrutas nuestra cocina. Por eso te avisamos: hoy hay *${plato}*${pStr2} en el menú. 😊`],
+        nuevo: [`Nos alegra que nos estés conociendo. Hoy te recomendamos nuestra *${plato}*${pStr2}. ¡Estamos seguros de que te va a gustar!`,`Para que empieces con el pie derecho, prueba la *${plato}*${pStr2}. Es una de las preferidas de nuestros clientes.`],
+        grupo: [`¡Atención! Hoy tenemos en el menú *${plato}*${pStr2}. ¡No se lo pierdan, está delicioso!`,`Recuerden que seguimos con *${plato}*${pStr2} disponible. ¡Son bienvenidos en ${nombre}!`],
+        delivery: [`¡Tu pedido de *${plato}*${pStr2} ya está en camino! 🛵 Pronto lo tendrás en tu puerta. ¡Buen provecho!`,`Confirmamos tu pedido de *${plato}*. Estamos preparándolo con todo el cuidado. 😊`]
+      };
+      const lista = cuerpos[destinatario] || cuerpos.cliente;
+      return `${saludos[destinatario]}\n\n${lista[v % lista.length]}${cierre}`;
+    }
+
+    return '';
+  }
+
+  // ── Generar ──────────────────────────────────────────────
+  window.gcGenerar = function() {
+    const plato = (document.getElementById('gc-plato')?.value || '').trim();
+    if (!plato) {
+      if (typeof showToast === 'function') showToast('⚠️ Busca y selecciona un plato del menú');
+      document.getElementById('gc-buscar-plato')?.focus();
+      return;
+    }
+    const precio = _gcPrecioVisible ? (document.getElementById('gc-precio')?.value || '').trim() : '';
+    const nombre = gcGetNombre();
+
+    const btn = document.getElementById('gc-btn-generar');
+    if (btn) { btn.textContent = '⏳ Generando...'; btn.style.opacity = '0.7'; }
+
+    setTimeout(() => {
+      const textos = [];
+      for (let i = 0; i < _gcCantidad; i++) textos.push(_gcTexto(nombre, plato, precio, i));
+      _gcMostrarResultados(textos);
+      if (btn) { btn.textContent = '✦ Generar contenido'; btn.style.opacity = '1'; }
+    }, 400);
+  };
+
+  function _gcMostrarResultados(textos) {
+    const sec = document.getElementById('gc-resultados');
+    const lista = document.getElementById('gc-resultados-lista');
+    if (!sec || !lista) return;
+    sec.style.display = 'block';
+    lista.innerHTML = '';
+    const etiquetas = { instagram: '📱 Instagram', descripcion: '🍽️ Menú', promocion: '🎉 Promoción', whatsapp: '💬 WhatsApp' };
+    textos.forEach((texto, i) => {
+      const div = document.createElement('div');
+      div.style.cssText = 'background:rgba(21,101,192,0.05);border-radius:10px;padding:12px;margin-bottom:10px;border:1.5px solid rgba(21,101,192,0.18);';
+      const textoMostrar = texto.replace(/\*([^*]+)\*/g, '<strong>$1</strong>');
+      div.innerHTML = `
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#1565C0;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+          <span>${etiquetas[_gcTipo]} — Versión ${i + 1}</span>
+          <button onclick="gcCopiar(this)" data-texto="${texto.replace(/\*/g,'').replace(/"/g,'&quot;').replace(/\n/g,'\\n')}"
+            style="padding:5px 12px;border-radius:8px;border:none;background:#1565C0;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Copiar</button>
+        </div>
+        <div style="font-size:13px;line-height:1.7;color:var(--negro);white-space:pre-wrap;">${textoMostrar}</div>
+      `;
+      lista.appendChild(div);
+    });
+    sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  window.gcCopiar = function(btn) {
+    const texto = (btn.dataset.texto || '').replace(/\\n/g, '\n');
+    navigator.clipboard.writeText(texto).then(() => {
+      btn.textContent = '✓ Copiado';
+      btn.style.background = '#388e3c';
+      setTimeout(() => { btn.textContent = 'Copiar'; btn.style.background = '#1565C0'; }, 2000);
+      if (typeof showToast === 'function') showToast('📋 Texto copiado');
+    }).catch(() => {
+      try { const ta = document.createElement('textarea'); ta.value = texto; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); btn.textContent = '✓ Copiado'; setTimeout(() => { btn.textContent = 'Copiar'; }, 2000); } catch(_) {}
+    });
+  };
+
+  // ── Sync nombre al abrir el accordion o el drawer ────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const header = document.querySelector('[data-cfgacc="cfgacc-contenido"]');
+    if (header) header.addEventListener('click', gcSyncNombre);
+    // Hook al abrir drawer
+    const origAbrirDrawer = window.abrirDrawer;
+    if (origAbrirDrawer) {
+      window.abrirDrawer = function(tipo) {
+        origAbrirDrawer.apply(this, arguments);
+        if (tipo === 'editmenu') setTimeout(gcSyncNombre, 150);
+      };
+    }
+    // Intentar sync inmediato por si ya está cargado
+    setTimeout(gcSyncNombre, 800);
+  });
+
+})();
 </script>
 
 <script>
