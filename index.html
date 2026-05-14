@@ -4808,11 +4808,11 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
 
           <div class="qr2-color-row">
             <label class="qr2-color-label">🟩 Color del cuadro finder</label>
-            <input type="color" class="qr2-color-input" id="qr2ColorMenu" value="#2d8a4e">
+            <input type="color" class="qr2-color-input" id="qr2ColorMenu" value="#000000">
           </div>
           <div class="qr2-color-row">
-            <label class="qr2-color-label">⚫ Color del círculo interior</label>
-            <input type="color" class="qr2-color-input" id="qr2ColorInnerMenu" value="#1a1a26">
+            <label class="qr2-color-label">🟢 Color del círculo interior</label>
+            <input type="color" class="qr2-color-input" id="qr2ColorInnerMenu" value="#22c55e">
           </div>
 
           <button class="qr2-gen-btn menu-btn" onclick="qr2Generar('menu')">
@@ -4848,11 +4848,11 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
 
           <div class="qr2-color-row">
             <label class="qr2-color-label">🟦 Color del cuadro finder</label>
-            <input type="color" class="qr2-color-input" id="qr2ColorDom" value="#1565C0">
+            <input type="color" class="qr2-color-input" id="qr2ColorDom" value="#000000">
           </div>
           <div class="qr2-color-row">
-            <label class="qr2-color-label">⚫ Color del círculo interior</label>
-            <input type="color" class="qr2-color-input" id="qr2ColorInnerDom" value="#1a1a26">
+            <label class="qr2-color-label">🟢 Color del círculo interior</label>
+            <input type="color" class="qr2-color-input" id="qr2ColorInnerDom" value="#22c55e">
           </div>
 
           <button class="qr2-gen-btn dom-btn" onclick="qr2Generar('dom')">
@@ -19402,8 +19402,8 @@ function qr2Generar(tipo) {
   const canvasId = tipo==='menu' ? 'qr2CanvasMenu' : 'qr2CanvasDom';
   const colorInput      = document.getElementById(tipo==='menu' ? 'qr2ColorMenu'      : 'qr2ColorDom');
   const colorInnerInput = document.getElementById(tipo==='menu' ? 'qr2ColorInnerMenu' : 'qr2ColorInnerDom');
-  const finderColor      = (colorInput      && colorInput.value)      ? colorInput.value      : (tipo==='menu' ? '#2d8a4e' : '#1565C0');
-  const finderInnerColor = (colorInnerInput && colorInnerInput.value) ? colorInnerInput.value : '#1a1a26';
+  const finderColor      = (colorInput      && colorInput.value)      ? colorInput.value      : '#000000';
+  const finderInnerColor = (colorInnerInput && colorInnerInput.value) ? colorInnerInput.value : '#22c55e';
 
   const input = document.getElementById(inputId);
   if (!input) return;
@@ -19430,7 +19430,7 @@ function qr2Generar(tipo) {
     const canvas = document.createElement('canvas');
     canvas.style.cssText = 'border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);display:block;max-width:100%';
     _qrRenderCanvas(canvas, mat, size, {
-      colorDark: '#1a1a26',
+      colorDark: '#000000',
       colorLight: '#ffffff',
       colorFinder: finderColor,
       colorFinderInner: finderInnerColor,
