@@ -1966,10 +1966,46 @@
     touch-action: manipulation;
   }
   .oss-btn-new:active { transform: scale(.97); box-shadow: 0 3px 12px rgba(255,68,26,.35); }
+  /* ── SPLASH ── */
+  #appSplash {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #0d0d0d;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+    transition: opacity 0.45s ease, visibility 0.45s ease;
+  }
+  #appSplash.splash-hide { opacity: 0; visibility: hidden; pointer-events: none; }
+  .splash-logo-wrap {
+    width: 88px; height: 88px; border-radius: 24px;
+    background: #FF441A; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 32px rgba(255,68,26,0.35);
+    animation: splashPulse 1.6s ease-in-out infinite;
+  }
+  .splash-logo-wrap img { width: 64px; height: 64px; object-fit: contain; border-radius: 16px; }
+  .splash-logo-wrap .splash-emoji { font-size: 42px; line-height: 1; }
+  .splash-title { font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 800; color: #f0f0f0; letter-spacing: -0.5px; }
+  .splash-subtitle { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #888; margin-top: -14px; }
+  .splash-bar-wrap { width: 160px; height: 4px; background: #2a2a2a; border-radius: 2px; overflow: hidden; }
+  .splash-bar { height: 100%; width: 0%; background: #FF441A; border-radius: 2px; animation: splashBar 2s ease-in-out forwards; }
+  @keyframes splashPulse {
+    0%, 100% { transform: scale(1);    box-shadow: 0 8px 32px rgba(255,68,26,0.35); }
+    50%       { transform: scale(1.07); box-shadow: 0 12px 40px rgba(255,68,26,0.5); }
+  }
+  @keyframes splashBar { 0% { width:0%; } 60% { width:80%; } 100% { width:100%; } }
 
 </style>
 </head>
 <body>
+
+<!-- SPLASH -->
+<div id="appSplash">
+  <div class="splash-logo-wrap" id="splashLogoWrap">
+    <span class="splash-emoji">🛵</span>
+  </div>
+  <div class="splash-title" id="splashTitle">Domicilios</div>
+  <div class="splash-subtitle">Cargando…</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+</div>
 
 <div id="startScreen" class="start-screen">
 
@@ -5804,9 +5840,10 @@ async function conectar(cfg) {
         if (window.applyTheme) window.applyTheme();
         if (window.render) window.render();
         if (window.verificarHorario) window.verificarHorario();
+        if (typeof window._hideSplash === 'function') window._hideSplash();
       }
     }
-  } catch(e) { console.warn('fbLoadDecorImages:', e); }
+  } catch(e) { console.warn('fbLoadDecorImages:', e); if (typeof window._hideSplash === 'function') window._hideSplash(); }
 
   // Escuchar cambios en tiempo real — menú
   if (window._fbUnsubMenu) window._fbUnsubMenu();
@@ -7119,6 +7156,31 @@ window.renderCategoryGridSafe = function() {
   </div>
   <button class="oss-btn-new" onclick="ossNuevoPedido()">🛵 Hacer otro pedido</button>
 </div>
+<script>
+// ── SPLASH ──────────────────────────────────────────────────
+(function() {
+  const splash = document.getElementById('appSplash');
+  if (!splash) return;
+  window._hideSplash = function() {
+    splash.classList.add('splash-hide');
+    setTimeout(() => { splash.style.display = 'none'; }, 480);
+  };
+  // Aplicar logo/nombre desde localStorage si existe
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      const s = JSON.parse(localStorage.getItem('pos_menu_settings_v1') || localStorage.getItem('pos_menu_settings') || '{}');
+      const logo = s.businessLogo || localStorage.getItem('pos_logo');
+      const nombre = s.restaurantName || s.businessName;
+      const wrap = document.getElementById('splashLogoWrap');
+      if (wrap && logo) wrap.innerHTML = `<img src="${logo}" alt="logo">`;
+      const title = document.getElementById('splashTitle');
+      if (title && nombre) title.textContent = nombre;
+    } catch(e) {}
+  });
+  // Seguro: ocultar tras 6s aunque Firebase no responda
+  setTimeout(() => window._hideSplash(), 6000);
+})();
+</script>
 
 </body>
 </html>
