@@ -19386,16 +19386,13 @@ function _qrRenderCanvas(canvas, mat, size, opts) {
     ctx.fillStyle=opts.colorFinderInner;
     ctx.beginPath();ctx.arc(cx,cy,iR,0,Math.PI*2);ctx.fill();
   }
-  // Logo central — máx 8% del radio para no exceder capacidad de corrección H (~30% área)
-  const cx2=cs/2,cy2=cs/2,lr=cs*0.08,bgR=lr*1.25;
-  ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
-  ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.strokeStyle=opts.colorFinder;ctx.lineWidth=bgR*0.15;ctx.stroke();
+  // Logo central — solo si hay logo del restaurante cargado
   if(opts.logoImage){
+    const cx2=cs/2,cy2=cs/2,lr=cs*0.08,bgR=lr*1.25;
+    ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
+    ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.strokeStyle=opts.colorFinder;ctx.lineWidth=bgR*0.18;ctx.stroke();
     ctx.save();ctx.beginPath();ctx.arc(cx2,cy2,lr,0,Math.PI*2);ctx.clip();
     ctx.drawImage(opts.logoImage,cx2-lr,cy2-lr,lr*2,lr*2);ctx.restore();
-  } else {
-    ctx.font=`bold ${lr*1.1}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('🍽️',cx2,cy2);
   }
 }
 
@@ -19422,17 +19419,16 @@ function qr2Generar(tipo) {
   wrap.innerHTML = '';
 
   try {
-    const ecLevel = 'H';
+    // Con logo necesitamos H (30% redundancia); sin logo M es suficiente y el QR queda más limpio
+    const logoImg = window._qr2LogoImg || null;
+    const ecLevel = logoImg ? 'H' : 'M';
     const version = _qrSelectVersion(url, ecLevel);
     const bits    = _qrEncodeData(url, version, ecLevel);
     const mask    = _qrSelectMask(version, bits, ecLevel);
     const {mat, size} = _qrBuildMatrix(version, bits, ecLevel, mask);
 
     const canvas = document.createElement('canvas');
-    canvas.style.cssText = 'border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);display:block;max-width:100%;';
-
-    // Logo: usar logoBase64 si existe
-    const logoImg = window._qr2LogoImg || null;
+    canvas.style.cssText = 'border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);display:block;max-width:100%';
     _qrRenderCanvas(canvas, mat, size, {
       colorDark: '#1a1a26',
       colorLight: '#ffffff',
