@@ -2762,6 +2762,7 @@
     font-size: 14px; font-weight: 800; cursor: pointer;
     font-family: inherit; transition: opacity 0.2s, transform 0.15s;
     display: flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 50px; white-space: nowrap;
   }
   .qr2-gen-btn:active { opacity: 0.85; transform: scale(0.98); }
   .qr2-gen-btn.menu-btn { background: linear-gradient(135deg,#2d5a27,#4a8c3f); color: #fff; }
@@ -4778,7 +4779,7 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
         <span class="cfg-acc-icon">📲</span>
         <div>
           <div class="cfg-acc-title">Código QR</div>
-          <div class="cfg-acc-sub">Menú restaurante · Domicilios</div>
+          <div class="cfg-acc-sub">Restaurante · Domicilios</div>
         </div>
       </div>
       <span class="cfg-acc-arrow">▼</span>
@@ -4788,7 +4789,7 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
 
         <!-- Tabs -->
         <div class="qr2-tabs">
-          <button class="qr2-tab active" onclick="qr2Tab('menu',this)">🌿 Menú</button>
+          <button class="qr2-tab active" onclick="qr2Tab('menu',this)">🌿 Restaurante</button>
           <button class="qr2-tab" onclick="qr2Tab('dom',this)">🛵 Domicilios</button>
         </div>
 
