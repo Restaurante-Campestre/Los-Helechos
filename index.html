@@ -125,6 +125,37 @@
 
   body { transition: background 0.25s ease, color 0.25s ease; }
 
+  /* ── BOTONES HOME FLAT VIBRANTE ── */
+  .home-neutral-btn {
+    color: #ffffff;
+    border: none;
+    box-shadow: none;
+    position: relative;
+    z-index: 1;
+  }
+  /* Historial — cyan turquesa */
+  #btnHistorialHome {
+    background: #00BCD4;
+  }
+  /* Editar menú — coral/naranja */
+  .home-btn-editmenu {
+    background: #D32F2F;
+  }
+  /* Configuración — índigo */
+  #btnConfigHome {
+    background: #3F51B5;
+  }
+  /* Estadísticas — verde menta */
+  .home-btn-stats {
+    background: #00897B;
+  }
+  /* Active states */
+  .home-neutral-btn:active { opacity: 0.82; transform: scale(0.97); }
+
+  .home-neutral-btn .home-btn-sub {
+    color: rgba(255,255,255,0.72);
+  }
+
   .header, .tabs, .tab, .menu-item, .cart-item, .card-section,
   .config-section, .hist-item, .modal, .cat-btn, .pago-btn,
   .totales, .pin-key, .user-card, .form-input, .config-input,
@@ -1584,6 +1615,33 @@
     content: ''; width: 4px; height: 14px;
     background: var(--rappi); border-radius: 4px;
   }
+
+  /* ── SECCIONES DE ESTADÍSTICAS CON COLOR PROPIO ── */
+  #statsInformeSec  { background: #1B5E20; border: none; }
+  #statsDiasSec     { background: #0D47A1; border: none; }
+  #statsTopSec      { background: #E65100; border: none; }
+  #statsPagosSec    { background: #F57F17; border: none; }
+  #statsCajeroSec   { background: #4A148C; border: none; }
+
+  #statsInformeSec h4,
+  #statsDiasSec h4,
+  #statsTopSec h4,
+  #statsPagosSec h4,
+  #statsCajeroSec h4 {
+    color: #fff;
+  }
+  #statsInformeSec h4::before,
+  #statsDiasSec h4::before,
+  #statsTopSec h4::before,
+  #statsPagosSec h4::before,
+  #statsCajeroSec h4::before {
+    background: rgba(255,255,255,0.6);
+  }
+  body.dark #statsInformeSec,
+  body.dark #statsDiasSec,
+  body.dark #statsTopSec,
+  body.dark #statsPagosSec,
+  body.dark #statsCajeroSec { filter: brightness(0.80); }
   .config-field { margin-bottom: 12px; }
   .config-field label {
     display: block; font-size: 12px; font-weight: 600;
@@ -2632,7 +2690,7 @@
 
   /* ── Acordeón config avanzada ── */
   .cfg-acc {
-    border: 1.5px solid rgba(123,31,162,0.25); border-radius: 16px; overflow: hidden;
+    border: none; border-radius: 16px; overflow: hidden;
     margin-bottom: 10px; background: var(--blanco);
   }
   .cfg-acc-header {
@@ -2642,29 +2700,47 @@
   .cfg-acc-header:active { opacity: .75; }
   .cfg-acc-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .cfg-acc-icon { font-size: 20px; flex-shrink: 0; }
-  .cfg-acc-title { font-size: 14px; font-weight: 900; color: var(--negro); line-height: 1.2; }
-  .cfg-acc-sub { font-size: 11px; color: var(--gris); font-weight: 600; margin-top: 2px; }
-  .cfg-acc-arrow { font-size: 13px; color: var(--gris); flex-shrink: 0; transition: transform .25s; font-weight: 900; }
+  .cfg-acc-title { font-size: 14px; font-weight: 900; color: #fff; line-height: 1.2; }
+  .cfg-acc-sub { font-size: 11px; color: rgba(255,255,255,0.70); font-weight: 600; margin-top: 2px; }
+  .cfg-acc-arrow { font-size: 13px; color: rgba(255,255,255,0.70); flex-shrink: 0; transition: transform .25s; font-weight: 900; }
   .cfg-acc.open .cfg-acc-arrow { transform: rotate(180deg); }
   .cfg-acc-body { max-height: 0; overflow: hidden; transition: max-height .32s ease; }
-  /* FIX: quitar overflow:hidden cuando está abierto — si no, el file picker no se puede abrir en iOS/Android */
   .cfg-acc.open .cfg-acc-body { max-height: 9999px; overflow: visible; }
   .cfg-acc-inner { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
-  .cfg-acc.open .cfg-acc-header { background: rgba(123,31,162,0.08); border-bottom: 1px solid rgba(123,31,162,0.15); }
-  .cfg-acc.open .cfg-acc-title { color: #7B1FA2; }
-  .cfg-acc.open .cfg-acc-arrow { color: #7B1FA2; }
+  .cfg-acc.open .cfg-acc-header { filter: brightness(1.12); border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .cfg-acc.open .cfg-acc-title { color: #fff; }
+  .cfg-acc.open .cfg-acc-arrow { color: #fff; }
 
-  /* dark mode cfg-acc */
-  body.dark .cfg-acc {
-    background: #242424;
-    border-color: rgba(156,39,176,0.35);
-  }
-  body.dark .cfg-acc-title { color: #F0F0F0; }
-  body.dark .cfg-acc-sub   { color: #888; }
-  body.dark .cfg-acc-arrow { color: #888; }
-  body.dark .cfg-acc.open .cfg-acc-header { background: rgba(123,31,162,0.18); }
-  body.dark .cfg-acc.open .cfg-acc-title  { color: #CE93D8; }
-  body.dark .cfg-acc.open .cfg-acc-arrow  { color: #CE93D8; }
+  /* ── COLORES INDIVIDUALES POR ACORDEÓN ── */
+  #cfgacc-restaurante { background: #1565C0; }   /* azul — datos restaurante   */
+  #cfgacc-horario     { background: #00838F; }   /* teal — horario             */
+  #cfgacc-pagos       { background: #F57F17; }   /* ámbar — formas de pago     */
+  #cfgacc-qr          { background: #6A1B9A; }   /* morado — código QR         */
+  #cfgacc-consec      { background: #2E7D32; }   /* verde — consecutivo        */
+  #cfgacc-bt          { background: #37474F; }   /* gris azul — bluetooth      */
+  #cfgacc-usuarios    { background: #C62828; }   /* rojo — usuarios            */
+  #cfgacc-firebase    { background: #E65100; }   /* naranja — firebase         */
+  #cfgacc-backup      { background: #4527A0; }   /* índigo — backup            */
+  #cfgacc-storage     { background: #00695C; }   /* verde oscuro — storage     */
+  #cfgacc-productos   { background: #AD1457; }   /* rosa — productos           */
+  #cfgacc-precios     { background: #558B2F; }   /* verde oliva — precios      */
+  #cfgacc-cats        { background: #1565C0; }   /* azul — categorías          */
+  #cfgacc-diseno      { background: #6D4C41; }   /* café — diseño              */
+
+  /* Texto oscuro para el cuerpo expandido (sobre fondo de color) */
+  .cfg-acc-inner .form-label,
+  .cfg-acc-inner .form-label-small,
+  .cfg-acc-inner label,
+  .cfg-acc-inner p { color: rgba(255,255,255,0.90); }
+
+  /* dark mode cfg-acc — mantiene los mismos colores, solo los oscurece un poco */
+  body.dark .cfg-acc { filter: brightness(0.80); }
+  body.dark .cfg-acc-title { color: #fff; }
+  body.dark .cfg-acc-sub   { color: rgba(255,255,255,0.65); }
+  body.dark .cfg-acc-arrow { color: rgba(255,255,255,0.65); }
+  body.dark .cfg-acc.open .cfg-acc-header { filter: brightness(1.15); }
+  body.dark .cfg-acc.open .cfg-acc-title  { color: #fff; }
+  body.dark .cfg-acc.open .cfg-acc-arrow  { color: #fff; }
 
   /* Placeholders vacíos de imágenes en dark */
   body.dark #cfgBgEmptyWrap,
@@ -4261,117 +4337,103 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
 
 <!-- PANEL HOME -->
 <div id="panel-home" class="active">
-  <div style="display:flex;flex-direction:column;gap:12px;padding:16px 0 8px;">
+  <div style="display:flex;flex-direction:column;gap:10px;padding:16px 0 8px;">
     <!-- Saludo al usuario -->
     <div id="homeGreeting" class="home-greeting" style="font-size:20px;font-weight:900;color:var(--negro);letter-spacing:-0.4px;margin-bottom:2px;padding:0 4px;"></div>
 
-    <!-- Fila 1: Pedidos + Historial + Cobros (3 botones iguales) -->
+    <!-- Fila 1: Pedidos + Historial + Cobros -->
     <div style="display:flex;gap:10px;">
 
       <!-- Pedidos -->
       <button onclick="showTab('pedidos')" style="
-        flex:1;padding:14px 8px;
-        background:linear-gradient(135deg,#7B1FA2,#9C27B0);
-        color:#fff;border:none;border-radius:16px;
+        flex:1;padding:18px 8px;
+        background:#9C27B0;
+        color:#fff;border:none;border-radius:18px;
         font-size:13px;font-weight:800;font-family:inherit;
-        cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
-        box-shadow:0 4px 16px rgba(123,31,162,0.4);
+        cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
         touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-        transition:opacity 0.15s;position:relative;">
-        <span style="font-size:26px;">📑</span>
+        transition:opacity 0.15s,transform 0.1s;position:relative;">
+        <span style="font-size:28px;">📑</span>
         <span>Pedidos</span>
-        <span id="homePendientesBadge" style="display:none;position:absolute;top:7px;right:7px;background:#fff;color:#7B1FA2;border-radius:999px;min-width:20px;height:20px;padding:0 5px;font-size:11px;font-weight:900;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.2);">0</span>
+        <span id="homePendientesBadge" style="display:none;position:absolute;top:8px;right:8px;background:#fff;color:#9C27B0;border-radius:999px;min-width:20px;height:20px;padding:0 5px;font-size:11px;font-weight:900;align-items:center;justify-content:center;">0</span>
       </button>
 
       <!-- Historial -->
-      <button id="btnHistorialHome" onclick="showTab('historial')" style="
-        flex:1;padding:14px 8px;
-        background:var(--blanco);
-        color:var(--negro);border:1.5px solid var(--gris-cl);border-radius:16px;
+      <button id="btnHistorialHome" onclick="showTab('historial')" class="home-neutral-btn" style="
+        flex:1;padding:18px 8px;border-radius:18px;
         font-size:13px;font-weight:700;font-family:inherit;
-        cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
-        box-shadow:var(--sombra-s);
+        cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
         touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-        transition:opacity 0.15s;">
-        <span style="font-size:26px;">📋</span>
+        transition:opacity 0.15s,transform 0.1s;">
+        <span style="font-size:28px;">📋</span>
         <span>Historial</span>
       </button>
 
       <!-- Cobros pendientes -->
       <button id="btnCobrosHome" onclick="abrirRecibosPendientes()" style="
-        flex:1;padding:14px 8px;
-        background:linear-gradient(135deg,#1b5e20,#2e7d32);
-        color:#fff;border:none;border-radius:16px;
+        flex:1;padding:18px 8px;
+        background:#E91E63;
+        color:#fff;border:none;border-radius:18px;
         font-size:13px;font-weight:700;font-family:inherit;
-        cursor:pointer;display:none;flex-direction:column;align-items:center;justify-content:center;gap:7px;
-        box-shadow:0 4px 16px rgba(46,125,50,0.3);
+        cursor:pointer;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;
         touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-        transition:opacity 0.15s;position:relative;">
-        <span style="font-size:26px;">💰</span>
+        transition:opacity 0.15s,transform 0.1s;position:relative;">
+        <span style="font-size:28px;">💰</span>
         <span style="text-align:center;line-height:1.2;">Cobros<br>Pendientes</span>
-        <span id="badgeCajero" style="display:none;position:absolute;top:7px;right:7px;background:#fff;color:#1b5e20;border-radius:999px;min-width:20px;height:20px;padding:0 5px;font-size:11px;font-weight:900;align-items:center;justify-content:center;">0</span>
+        <span id="badgeCajero" style="display:none;position:absolute;top:8px;right:8px;background:#fff;color:#E91E63;border-radius:999px;min-width:20px;height:20px;padding:0 5px;font-size:11px;font-weight:900;align-items:center;justify-content:center;">0</span>
         <div id="cobrosSubtitle" style="display:none;"></div>
       </button>
 
     </div>
 
-    <!-- Fila 2: Editar menú + Configuración (2 pequeños) -->
+    <!-- Fila 2: Editar menú + Configuración -->
     <div id="btnRowAdminHome" style="display:flex;gap:10px;">
-      <button onclick="cerrarSidebar();abrirDrawer('editmenu')" style="
-        flex:1;padding:14px 12px;
-        background:var(--blanco);
-        color:var(--negro);border:1.5px solid var(--gris-cl);border-radius:16px;
+      <button onclick="cerrarSidebar();abrirDrawer('editmenu')" class="home-neutral-btn home-btn-editmenu" style="
+        flex:1;padding:18px 12px;border-radius:18px;
         font-size:13px;font-weight:700;font-family:inherit;
-        cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;
-        box-shadow:var(--sombra-s);
+        cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;
         touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-        transition:opacity 0.15s;">
-        <span style="font-size:26px;">🍴</span>
+        transition:opacity 0.15s,transform 0.1s;">
+        <span style="font-size:28px;">🍴</span>
         <span>Editar menú</span>
       </button>
-      <button id="btnConfigHome" onclick="cerrarSidebar();abrirDrawer('config')" style="
-        flex:1;padding:14px 12px;
-        background:var(--blanco);
-        color:var(--negro);border:1.5px solid var(--gris-cl);border-radius:16px;
+      <button id="btnConfigHome" onclick="cerrarSidebar();abrirDrawer('config')" class="home-neutral-btn" style="
+        flex:1;padding:18px 12px;border-radius:18px;
         font-size:13px;font-weight:700;font-family:inherit;
-        cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;
-        box-shadow:var(--sombra-s);
+        cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;
         touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-        transition:opacity 0.15s;">
-        <span style="font-size:26px;">⚙️</span>
+        transition:opacity 0.15s,transform 0.1s;">
+        <span style="font-size:28px;">⚙️</span>
         <span>Configuración</span>
       </button>
     </div>
 
-    <!-- Fila 3: Estadísticas (1 botón grande horizontal) -->
-    <button onclick="cerrarSidebar();abrirDrawer('stats')" style="
-      width:100%;padding:18px 20px;
-      background:var(--blanco);
-      color:var(--negro);border:1.5px solid var(--gris-cl);border-radius:16px;
-      font-size:16px;font-weight:800;font-family:inherit;
-      cursor:pointer;display:flex;align-items:center;gap:14px;
-      box-shadow:var(--sombra-s);
+    <!-- Fila 3: Estadísticas -->
+    <button onclick="cerrarSidebar();abrirDrawer('stats')" class="home-neutral-btn home-btn-stats" style="
+      width:100%;padding:20px 22px;border-radius:18px;
+      font-size:15px;font-weight:800;font-family:inherit;
+      cursor:pointer;display:flex;align-items:center;gap:16px;
       touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-      transition:opacity 0.15s;">
-      <span style="font-size:28px;">📈</span>
+      transition:opacity 0.15s,transform 0.1s;">
+      <span style="font-size:30px;">📈</span>
       <div style="text-align:left;flex:1;">
         <div>Estadísticas</div>
-        <div style="font-size:12px;font-weight:600;opacity:0.5;margin-top:2px;">Ventas, productos y más</div>
+        <div class="home-btn-sub" style="font-size:12px;font-weight:600;margin-top:2px;">Ventas, productos y más</div>
       </div>
-      <span style="font-size:20px;opacity:0.4;">›</span>
+      <span style="font-size:22px;opacity:0.6;">›</span>
     </button>
 
     <!-- Domicilios — solo admin/master/responsable asignado -->
-    <button id="btnDomiciliosHome" onclick="showTab('domicilios')" style="display:none;width:100%;padding:16px 20px;
-      background:linear-gradient(135deg,#0D47A1,#1565C0);
-      color:#fff;border:none;border-radius:16px;
+    <button id="btnDomiciliosHome" onclick="showTab('domicilios')" style="display:none;width:100%;padding:18px 22px;
+      background:#1565C0;
+      color:#fff;border:none;border-radius:18px;
       font-size:15px;font-weight:700;font-family:inherit;
-      cursor:pointer;align-items:center;gap:12px;
-      box-shadow:0 4px 16px rgba(13,71,161,0.35);
-      touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
-      <span style="font-size:24px;">🛵</span>
+      cursor:pointer;align-items:center;gap:14px;
+      touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+      transition:opacity 0.15s,transform 0.1s;">
+      <span style="font-size:26px;">🛵</span>
       <div style="text-align:left;flex:1;"><div>Domicilios</div><div id="domiciliosSubtitle" style="font-size:12px;font-weight:600;opacity:0.75;margin-top:2px;">Pedidos en línea</div></div>
-      <span id="badgeDomiciliosHome" style="display:none;background:#fff;color:#0D47A1;border-radius:999px;min-width:28px;height:28px;padding:0 8px;font-size:14px;font-weight:900;align-items:center;justify-content:center;flex-shrink:0;">0</span>
+      <span id="badgeDomiciliosHome" style="display:none;background:#fff;color:#1565C0;border-radius:999px;min-width:28px;height:28px;padding:0 8px;font-size:14px;font-weight:900;align-items:center;justify-content:center;flex-shrink:0;">0</span>
       <span style="font-size:20px;opacity:0.6;">›</span>
     </button>
 
