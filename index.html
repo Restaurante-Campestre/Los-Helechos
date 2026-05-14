@@ -19386,8 +19386,8 @@ function _qrRenderCanvas(canvas, mat, size, opts) {
     ctx.fillStyle=opts.colorFinderInner;
     ctx.beginPath();ctx.arc(cx,cy,iR,0,Math.PI*2);ctx.fill();
   }
-  // Logo central — radio más generoso (13% del canvas) para que se vea bien
-  const cx2=cs/2,cy2=cs/2,lr=cs*0.13,bgR=lr*1.18;
+  // Logo central — máx 8% del radio para no exceder capacidad de corrección H (~30% área)
+  const cx2=cs/2,cy2=cs/2,lr=cs*0.08,bgR=lr*1.25;
   ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
   ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.strokeStyle=opts.colorFinder;ctx.lineWidth=bgR*0.15;ctx.stroke();
   if(opts.logoImage){
