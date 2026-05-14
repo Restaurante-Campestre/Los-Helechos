@@ -19386,14 +19386,6 @@ function _qrRenderCanvas(canvas, mat, size, opts) {
     ctx.fillStyle=opts.colorFinderInner;
     ctx.beginPath();ctx.arc(cx,cy,iR,0,Math.PI*2);ctx.fill();
   }
-  // Logo central — solo si hay logo del restaurante cargado
-  if(opts.logoImage){
-    const cx2=cs/2,cy2=cs/2,lr=cs*0.08,bgR=lr*1.25;
-    ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
-    ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.strokeStyle=opts.colorFinder;ctx.lineWidth=bgR*0.18;ctx.stroke();
-    ctx.save();ctx.beginPath();ctx.arc(cx2,cy2,lr,0,Math.PI*2);ctx.clip();
-    ctx.drawImage(opts.logoImage,cx2-lr,cy2-lr,lr*2,lr*2);ctx.restore();
-  }
 }
 
 // ── QR PROPIO: engine nativo sin dependencias externas ───────
@@ -19419,9 +19411,7 @@ function qr2Generar(tipo) {
   wrap.innerHTML = '';
 
   try {
-    // Con logo necesitamos H (30% redundancia); sin logo M es suficiente y el QR queda más limpio
-    const logoImg = window._qr2LogoImg || null;
-    const ecLevel = logoImg ? 'H' : 'M';
+    const ecLevel = 'M';
     const version = _qrSelectVersion(url, ecLevel);
     const bits    = _qrEncodeData(url, version, ecLevel);
     const mask    = _qrSelectMask(version, bits, ecLevel);
@@ -19434,7 +19424,6 @@ function qr2Generar(tipo) {
       colorLight: '#ffffff',
       colorFinder: finderColor,
       colorFinderInner: finderInnerColor,
-      logoImage: logoImg
     });
 
     wrap.appendChild(canvas);
