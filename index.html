@@ -4823,58 +4823,6 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
             </select>
           </div>
 
-          <!-- ══ CAMPOS OPCIONALES EXTRA ══ -->
-          <details id="gc-extras-section" style="margin-bottom:12px;">
-            <summary style="list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:9px 12px;background:rgba(0,137,123,0.07);border:1.5px solid rgba(0,137,123,0.22);border-radius:10px;font-size:12px;font-weight:700;color:#00695C;user-select:none;">
-              <span style="font-size:14px;">⚙️</span>
-              <span>Datos extra (mensaje, redes, teléfonos, dirección)</span>
-              <span style="margin-left:auto;font-size:13px;color:#00897B;">▾</span>
-            </summary>
-            <div style="padding:10px 4px 0;">
-
-              <!-- Mensaje personalizado -->
-              <div style="margin-bottom:10px;">
-                <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">💬 Mensaje personalizado <span style="text-transform:none;font-weight:400;color:var(--gris);">(opcional)</span></label>
-                <textarea class="config-input" id="gc-mensaje-extra" rows="2" placeholder="Ej: ¡Visítanos y vive la experiencia!" style="margin:0;width:100%;resize:vertical;font-family:inherit;font-size:13px;line-height:1.5;"></textarea>
-              </div>
-
-              <!-- Redes sociales -->
-              <div style="margin-bottom:10px;">
-                <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">📲 Redes sociales <span style="text-transform:none;font-weight:400;color:var(--gris);">(opcional)</span></label>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:14px;width:22px;text-align:center;">📸</span>
-                    <input class="config-input" id="gc-red-instagram" placeholder="@usuario Instagram" style="margin:0;flex:1;" />
-                  </div>
-                  <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:14px;width:22px;text-align:center;">👍</span>
-                    <input class="config-input" id="gc-red-facebook" placeholder="Página Facebook" style="margin:0;flex:1;" />
-                  </div>
-                  <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:14px;width:22px;text-align:center;">🎵</span>
-                    <input class="config-input" id="gc-red-tiktok" placeholder="@usuario TikTok" style="margin:0;flex:1;" />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Teléfonos de reserva -->
-              <div style="margin-bottom:10px;">
-                <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">📞 Teléfonos de reserva <span style="text-transform:none;font-weight:400;color:var(--gris);">(opcional)</span></label>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <input class="config-input" id="gc-tel-1" placeholder="Teléfono / WhatsApp 1" style="margin:0;width:100%;" inputmode="tel" />
-                  <input class="config-input" id="gc-tel-2" placeholder="Teléfono 2 (opcional)" style="margin:0;width:100%;" inputmode="tel" />
-                </div>
-              </div>
-
-              <!-- Dirección -->
-              <div style="margin-bottom:10px;">
-                <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;">📍 Dirección <span style="text-transform:none;font-weight:400;color:var(--gris);">(opcional)</span></label>
-                <input class="config-input" id="gc-direccion-extra" placeholder="Ej: Cra 5 # 12-34, Bogotá" style="margin:0;width:100%;" />
-              </div>
-
-            </div>
-          </details>
-
           <!-- Tono -->
           <div style="margin-bottom:12px;">
             <label style="font-size:11px;font-weight:600;color:#00897B;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:7px;">Tono</label>
@@ -5114,7 +5062,7 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
         </div>
 
         <!-- Aviso sin logo -->
-
+        <div class="qr2-no-logo" id="qr2NoLogo">⚠️ Sube el logo del restaurante en <b>Datos del restaurante</b> para que aparezca en el centro del QR.</div>
 
         <!-- ── PANEL MENÚ ── -->
         <div class="qr2-panel active" id="qr2-panel-menu">
@@ -19962,54 +19910,7 @@ window.qr2Compartir  = qr2Compartir;
   function gcSyncNombre() {
     const el = document.getElementById('gc-restaurante-nombre');
     if (el) el.value = gcGetNombre();
-    // Pre-cargar campos extra desde pos_config si están vacíos
-    try {
-      const s = JSON.parse(localStorage.getItem('pos_config') || '{}');
-      const tel1 = document.getElementById('gc-tel-1');
-      const dir  = document.getElementById('gc-direccion-extra');
-      if (tel1 && !tel1.value && s.telefono) tel1.value = s.telefono;
-      if (dir  && !dir.value  && s.direccion) dir.value = s.direccion;
-    } catch(e) {}
   }
-
-  // ── Toggle QR de domicilio ───────────────────────────────
-  window.gcToggleQrDom = function(chk) {
-    const slider = document.getElementById('gc-qr-domicilio-slider');
-    const knob = slider?.querySelector('span');
-    if (chk.checked) {
-      if (slider) slider.style.background = '#00897B';
-      if (knob)   knob.style.transform = 'translateX(18px)';
-      // Intentar renderizar el QR guardado
-      gcRenderQrDomPreview(true);
-    } else {
-      if (slider) slider.style.background = '#ccc';
-      if (knob)   knob.style.transform = 'translateX(0px)';
-      const prev = document.getElementById('gc-qr-dom-preview');
-      const noqr = document.getElementById('gc-qr-dom-noqr');
-      if (prev) prev.style.display = 'none';
-      if (noqr) noqr.style.display = 'none';
-    }
-  };
-
-  function gcRenderQrDomPreview(show) {
-    const prev = document.getElementById('gc-qr-dom-preview');
-    const noqr = document.getElementById('gc-qr-dom-noqr');
-    if (!show) { if (prev) prev.style.display='none'; if (noqr) noqr.style.display='none'; return; }
-    // Intentar copiar desde el canvas real del QR domicilios (qr2)
-    const srcCanvas = (window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement) ? window._qr2['dom'] : null;
-    const destCanvas = document.getElementById('gc-qr-dom-canvas');
-    if (srcCanvas && destCanvas) {
-      destCanvas.width  = srcCanvas.width;
-      destCanvas.height = srcCanvas.height;
-      destCanvas.getContext('2d').drawImage(srcCanvas, 0, 0);
-      if (prev) prev.style.display = 'block';
-      if (noqr) noqr.style.display = 'none';
-    } else {
-      if (prev) prev.style.display = 'none';
-      if (noqr) noqr.style.display = 'block';
-    }
-  }
-  window.gcRenderQrDomPreview = gcRenderQrDomPreview;
 
   // ── Buscador de platos ───────────────────────────────────
   window.gcBuscarPlato = function(q) {
@@ -20037,10 +19938,8 @@ window.qr2Compartir  = qr2Compartir;
     dropdown.innerHTML = resultados.map((item, i) => {
       const precio = item.precio ? gcFormatPrecio(item.precio) : '';
       const foto = item.foto || '';
-      const desc = item.descripcion || '';
       const fotoAttr = foto ? ` data-foto="${esc(foto)}"` : '';
-      const descAttr = desc ? ` data-desc="${esc(desc)}"` : '';
-      return `<div onclick="gcSeleccionarPlato('${esc(item.nombre)}','${esc(precio)}',this.dataset.foto||'',this.dataset.desc||'')"${fotoAttr}${descAttr}
+      return `<div onclick="gcSeleccionarPlato('${esc(item.nombre)}','${esc(precio)}',this.dataset.foto||'')"${fotoAttr}
         style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--borde);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background 0.15s;"
         onmouseover="this.style.background='rgba(21,101,192,0.07)'"
         onmouseout="this.style.background='transparent'">
@@ -20063,7 +19962,7 @@ window.qr2Compartir  = qr2Compartir;
     return '$' + n.toLocaleString('es-CO');
   }
 
-  window.gcSeleccionarPlato = function(nombre, precio, foto, desc) {
+  window.gcSeleccionarPlato = function(nombre, precio, foto) {
     // Llenar campo oculto
     const platoInput = document.getElementById('gc-plato');
     if (platoInput) platoInput.value = nombre;
@@ -20076,13 +19975,6 @@ window.qr2Compartir  = qr2Compartir;
       precioInput.style.color = '#00695C';
       const badge = document.getElementById('gc-precio-auto-badge');
       if (badge) badge.style.display = 'inline-block';
-    }
-    // Auto-rellenar ingredientes desde la descripción del plato
-    const ingsInput = document.getElementById('gc-ingredientes');
-    if (ingsInput && desc) {
-      ingsInput.value = desc;
-    } else if (ingsInput && !desc) {
-      ingsInput.value = '';
     }
     // Mostrar chip
     const chip = document.getElementById('gc-plato-chip');
@@ -20258,31 +20150,11 @@ window.qr2Compartir  = qr2Compartir;
     };
   }
 
-  // ── Construir bloque de datos extra ─────────────────────
-  function _gcExtrasStr() {
-    const msg  = (document.getElementById('gc-mensaje-extra')?.value || '').trim();
-    const ig   = (document.getElementById('gc-red-instagram')?.value || '').trim();
-    const fb   = (document.getElementById('gc-red-facebook')?.value  || '').trim();
-    const tt   = (document.getElementById('gc-red-tiktok')?.value    || '').trim();
-    const tel1 = (document.getElementById('gc-tel-1')?.value || '').trim();
-    const tel2 = (document.getElementById('gc-tel-2')?.value || '').trim();
-    const dir  = (document.getElementById('gc-direccion-extra')?.value || '').trim();
-    let parts = [];
-    if (msg)  parts.push(`💬 ${msg}`);
-    if (dir)  parts.push(`📍 ${dir}`);
-    const tels = [tel1, tel2].filter(Boolean);
-    if (tels.length) parts.push(`📞 ${tels.join(' · ')}`);
-    const redes = [ig && `📸 ${ig}`, fb && `👍 ${fb}`, tt && `🎵 ${tt}`].filter(Boolean);
-    if (redes.length) parts.push(redes.join('  '));
-    return parts.length ? '\n\n' + parts.join('\n') : '';
-  }
-
   function _gcTexto(nombre, plato, precio, v) {
     const aps = _gcAperturas[_gcTono] || _gcAperturas.amigable;
     const apertura = aps[v % aps.length];
     const cierres = _gcCierres(nombre);
     const cierre = cierres[_gcTipo][v % cierres[_gcTipo].length];
-    const extras = _gcExtrasStr();
     const emoji = _gcRand(_gcEmojis);
     // Respetar toggle de precio
     const p = (_gcPrecioVisible && precio) ? precio : '';
@@ -20298,7 +20170,7 @@ window.qr2Compartir  = qr2Compartir;
         `No hay mejor plan que una buena comida. 🍽️\n\nNuestra *${plato}* está lista para ti: recién hecha, con ingredientes de calidad.${pStr}`,
         `*${plato}* ${emoji}\n\nAsí de simple. Así de delicioso. Sin complicaciones, solo sabor puro.${pStr}`,
       ];
-      return `${apertura}\n\n${cuerpos[v % cuerpos.length]}${cierre}${extras}${hashStr}`;
+      return `${apertura}\n\n${cuerpos[v % cuerpos.length]}${cierre}${hashStr}`;
     }
 
     if (_gcTipo === 'descripcion') {
@@ -20311,7 +20183,7 @@ window.qr2Compartir  = qr2Compartir;
         `Un clásico reinventado. Nuestra *${plato}*${ingStr} combina la autenticidad de los sabores con la calidez de la cocina casera. Abundante, sabrosa y lista para satisfacer.`,
         `¿Buscas un plato que te deje satisfecho y con ganas de volver? La *${plato}*${ingStr} de ${nombre} cumple esa promesa. Ingredientes frescos, sazón perfecta.`,
       ];
-      return `${cuerpos[v % cuerpos.length]}${pStr}\n\n✦ Disponible en nuestro menú del día.${extras}`;
+      return `${cuerpos[v % cuerpos.length]}${pStr}\n\n✦ Disponible en nuestro menú del día.`;
     }
 
     if (_gcTipo === 'promocion') {
@@ -20325,7 +20197,7 @@ window.qr2Compartir  = qr2Compartir;
         `Más sabor, mejor precio. Así es como funciona esto:\n\n🎯 *${detalle}*\n\nEn ${nombre} siempre encontrarás una razón para sonreír.${pStr}${vigStr}`,
         `¿Sabías que en ${nombre} también cuidamos tu bolsillo? 💚\n\n*${detalle}* — porque queremos que sigas eligiéndonos.${pStr}${vigStr}`,
       ];
-      return `${apertura}\n\n${cuerpos[v % cuerpos.length]}${cierre}${extras}`;
+      return `${apertura}\n\n${cuerpos[v % cuerpos.length]}${cierre}`;
     }
 
     if (_gcTipo === 'whatsapp') {
@@ -20339,7 +20211,7 @@ window.qr2Compartir  = qr2Compartir;
         delivery: [`¡Tu pedido de *${plato}*${pStr2} ya está en camino! 🛵 Pronto lo tendrás en tu puerta. ¡Buen provecho!`,`Confirmamos tu pedido de *${plato}*. Estamos preparándolo con todo el cuidado. 😊`]
       };
       const lista = cuerpos[destinatario] || cuerpos.cliente;
-      return `${saludos[destinatario]}\n\n${lista[v % lista.length]}${cierre}${extras}`;
+      return `${saludos[destinatario]}\n\n${lista[v % lista.length]}${cierre}`;
     }
 
     return '';
@@ -20362,7 +20234,6 @@ window.qr2Compartir  = qr2Compartir;
     setTimeout(() => {
       const textos = [];
       for (let i = 0; i < _gcCantidad; i++) textos.push(_gcTexto(nombre, plato, precio, i));
-      window._gcUltimosTextos = textos;
       _gcMostrarResultados(textos);
       if (btn) { btn.textContent = '✦ Generar contenido'; btn.style.opacity = '1'; }
     }, 400);
@@ -20375,25 +20246,15 @@ window.qr2Compartir  = qr2Compartir;
     sec.style.display = 'block';
     lista.innerHTML = '';
     const etiquetas = { instagram: '📱 Instagram', descripcion: '🍽️ Menú', promocion: '🎉 Promoción', whatsapp: '💬 WhatsApp' };
-
-    // ── Verificar si hay QR de domicilio para la imagen ──
-    const qrCanvas  = (window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement)
-      ? window._qr2['dom'] : null;
-
     textos.forEach((texto, i) => {
       const div = document.createElement('div');
       div.style.cssText = 'background:rgba(21,101,192,0.05);border-radius:10px;padding:12px;margin-bottom:10px;border:1.5px solid rgba(21,101,192,0.18);';
       const textoMostrar = texto.replace(/\*([^*]+)\*/g, '<strong>$1</strong>');
-
       div.innerHTML = `
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#1565C0;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#1565C0;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
           <span>${etiquetas[_gcTipo]} — Versión ${i + 1}</span>
-          <div style="display:flex;gap:5px;">
-            <button onclick="gcGenerarImagen(this,${i})"
-              style="padding:5px 11px;border-radius:8px;border:none;background:linear-gradient(135deg,#00897B,#004D40);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">🖼️ Imagen</button>
-            <button onclick="gcCopiar(this)" data-texto="${texto.replace(/\*/g,'').replace(/"/g,'&quot;').replace(/\n/g,'\\n')}"
-              style="padding:5px 12px;border-radius:8px;border:none;background:#1565C0;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Copiar</button>
-          </div>
+          <button onclick="gcCopiar(this)" data-texto="${texto.replace(/\*/g,'').replace(/"/g,'&quot;').replace(/\n/g,'\\n')}"
+            style="padding:5px 12px;border-radius:8px;border:none;background:#1565C0;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Copiar</button>
         </div>
         <div style="font-size:13px;line-height:1.7;color:var(--negro);white-space:pre-wrap;">${textoMostrar}</div>
       `;
@@ -20413,294 +20274,6 @@ window.qr2Compartir  = qr2Compartir;
       try { const ta = document.createElement('textarea'); ta.value = texto; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); btn.textContent = '✓ Copiado'; setTimeout(() => { btn.textContent = 'Copiar'; }, 2000); } catch(_) {}
     });
   };
-
-  // ── Generar imagen para redes sociales ───────────────────
-  window.gcGenerarImagen = async function(btn, idx) {
-    const textoRaw = (window._gcUltimosTextos || [])[idx] || '';
-    if (!textoRaw) { if (typeof showToast === 'function') showToast('⚠️ Sin texto para generar imagen'); return; }
-    if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
-    try {
-      await _gcRenderImagen(textoRaw);
-    } catch(e) {
-      if (typeof showToast === 'function') showToast('⚠️ No se pudo generar la imagen');
-      console.error('[gcGenerarImagen]', e);
-    }
-    if (btn) { btn.textContent = '🖼️ Imagen'; btn.disabled = false; }
-  };
-
-  async function _loadImg(src) {
-    return new Promise((res, rej) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload  = () => res(img);
-      img.onerror = () => res(null); // no fallar si no carga
-      img.src = src;
-    });
-  }
-
-  // Dibuja texto con saltos de línea, respetando un ancho máximo. Devuelve altura total usada.
-  function _gcDrawWrappedText(ctx, text, x, y, maxWidth, lineH) {
-    // Quitar asteriscos de markdown
-    const clean = text.replace(/\*\*?([^*]+)\*\*?/g, '$1');
-    const lineas = clean.split('\n');
-    let curY = y;
-    for (const linea of lineas) {
-      if (!linea.trim()) { curY += lineH * 0.55; continue; }
-      const palabras = linea.split(' ');
-      let actual = '';
-      for (const pal of palabras) {
-        const prueba = actual ? actual + ' ' + pal : pal;
-        if (ctx.measureText(prueba).width > maxWidth && actual) {
-          ctx.fillText(actual, x, curY);
-          curY += lineH;
-          actual = pal;
-        } else {
-          actual = prueba;
-        }
-      }
-      if (actual) { ctx.fillText(actual, x, curY); curY += lineH; }
-    }
-    return curY;
-  }
-
-  async function _gcRenderImagen(textoRaw) {
-    const SIZE   = 1080;
-    const canvas = document.createElement('canvas');
-    canvas.width  = SIZE;
-    canvas.height = SIZE;
-    const ctx = canvas.getContext('2d');
-
-    // ── 1. Datos actuales ────────────────────────────────────
-    const nombre  = gcGetNombre();
-    const fotoSrc = window._gcFotoActual || '';
-    const logoSrc = window.logoBase64    || '';
-    const qrCanvas = (window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement)
-                     ? window._qr2['dom'] : null;
-
-    // Color de marca: leer de pos_menu_settings_v1 → colorPrimario
-    let brandColor = '#FF441A';
-    try {
-      const raw = localStorage.getItem('pos_menu_settings_v1') || localStorage.getItem('pos_menu_settings') || '{}';
-      const cfg = JSON.parse(raw);
-      if (cfg.colorPrimario && cfg.colorPrimario !== '#2d5a27') brandColor = cfg.colorPrimario;
-      else if (cfg.colorPrimario) brandColor = cfg.colorPrimario;
-      else if (cfg.accentColor)   brandColor = cfg.accentColor;
-    } catch(_) {}
-    // Fallback: leer color de rappi de la config POS
-    try {
-      const cfg2 = JSON.parse(localStorage.getItem('pos_config') || '{}');
-      if (cfg2.colorMarca) brandColor = cfg2.colorMarca;
-    } catch(_) {}
-
-    const brandDark = _gcDarken(brandColor, 0.38);
-
-    // ── 2. Fondo ─────────────────────────────────────────────
-    if (fotoSrc) {
-      const foto = await _loadImg(fotoSrc);
-      if (foto) {
-        // Recorte cuadrado centrado
-        const ratio = foto.naturalWidth / foto.naturalHeight;
-        let sx = 0, sy = 0, sw = foto.naturalWidth, sh = foto.naturalHeight;
-        if (ratio > 1) { sw = foto.naturalHeight; sx = (foto.naturalWidth - sw) / 2; }
-        else           { sh = foto.naturalWidth;  sy = (foto.naturalHeight - sh) / 2; }
-        ctx.drawImage(foto, sx, sy, sw, sh, 0, 0, SIZE, SIZE);
-        // Overlay suave solo en bordes para no oscurecer el centro
-        const ov = ctx.createLinearGradient(0, 0, 0, SIZE);
-        ov.addColorStop(0,    'rgba(0,0,0,0.45)');
-        ov.addColorStop(0.30, 'rgba(0,0,0,0.10)');
-        ov.addColorStop(0.65, 'rgba(0,0,0,0.10)');
-        ov.addColorStop(1,    'rgba(0,0,0,0.55)');
-        ctx.fillStyle = ov;
-        ctx.fillRect(0, 0, SIZE, SIZE);
-      } else {
-        _gcFondoDegradado(ctx, SIZE, brandColor);
-      }
-    } else {
-      _gcFondoDegradado(ctx, SIZE, brandColor);
-    }
-
-    // ── 3. Franja inferior de marca ──────────────────────────
-    const franjaH = 100;
-    const franjaY = SIZE - franjaH;
-    const fg = ctx.createLinearGradient(0, franjaY, SIZE, SIZE);
-    fg.addColorStop(0, brandColor);
-    fg.addColorStop(1, brandDark);
-    ctx.fillStyle = fg;
-    ctx.fillRect(0, franjaY, SIZE, franjaH);
-
-    // ── 4. Logo circular (esquina superior izquierda) ────────
-    const logoPad = 40;
-    const logoSize = 100;
-    let logoDrawnH = 0;
-    if (logoSrc) {
-      const logo = await _loadImg(logoSrc);
-      if (logo) {
-        ctx.save();
-        // Círculo blanco de fondo
-        ctx.shadowColor = 'rgba(0,0,0,0.35)';
-        ctx.shadowBlur  = 14;
-        ctx.fillStyle   = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(logoPad + logoSize/2, logoPad + logoSize/2, logoSize/2 + 6, 0, Math.PI*2);
-        ctx.fill();
-        ctx.restore();
-        // Clip circular para el logo
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(logoPad + logoSize/2, logoPad + logoSize/2, logoSize/2, 0, Math.PI*2);
-        ctx.clip();
-        ctx.drawImage(logo, logoPad, logoPad, logoSize, logoSize);
-        ctx.restore();
-        logoDrawnH = logoPad + logoSize + 20;
-      }
-    }
-
-    // ── 5. Panel de texto con fondo semitransparente ─────────
-    const padX    = 44;
-    const panelMarginTop = Math.max(logoDrawnH + 20, logoPad + 20);
-    const panelMarginBot = franjaH + 28;
-
-    // Preparar líneas del texto para calcular altura real necesaria
-    const textoLimpio = textoRaw.replace(/\*\*?([^*]+)\*\*?/g, '$1');
-    const lineasRaw   = textoLimpio.split('\n');
-    const maxW        = SIZE - padX * 2 - 40; // ancho máximo del texto
-
-    // Calcular font size adaptativo
-    const espacioDisp = SIZE - panelMarginTop - panelMarginBot - 60;
-    const numLineasEst = lineasRaw.reduce((acc, l) => acc + (l.trim() ? Math.ceil((l.length * 9) / maxW) || 1 : 0.6), 0);
-    const fontSz = Math.min(38, Math.max(20, Math.floor(espacioDisp / (numLineasEst * 1.6))));
-    const lineH  = fontSz * 1.6;
-
-    ctx.font = `${fontSz}px Inter, Arial, sans-serif`;
-
-    // Calcular líneas reales con word-wrap
-    const lineasFinal = [];
-    for (const linea of lineasRaw) {
-      if (!linea.trim()) { lineasFinal.push(''); continue; }
-      const palabras = linea.split(' ');
-      let actual = '';
-      for (const pal of palabras) {
-        const prueba = actual ? actual + ' ' + pal : pal;
-        if (ctx.measureText(prueba).width > maxW && actual) {
-          lineasFinal.push(actual); actual = pal;
-        } else { actual = prueba; }
-      }
-      if (actual) lineasFinal.push(actual);
-    }
-
-    const panelH   = lineasFinal.length * lineH + 48;
-    const panelY   = panelMarginTop;
-    const panelX   = padX - 20;
-    const panelW   = SIZE - (padX - 20) * 2;
-
-    // Fondo del panel: negro semitransparente con bordes redondeados
-    ctx.save();
-    ctx.globalAlpha = 0.62;
-    ctx.fillStyle   = '#000000';
-    _gcRoundRect(ctx, panelX, panelY, panelW, Math.min(panelH, SIZE - panelMarginBot - panelY - 10), 18);
-    ctx.fill();
-    ctx.restore();
-
-    // Texto blanco sobre el panel
-    ctx.save();
-    ctx.font      = `${fontSz}px Inter, Arial, sans-serif`;
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0,0,0,0.0)'; // sin sombra extra — el panel ya da contraste
-    let ty = panelY + 36;
-    for (const linea of lineasFinal) {
-      if (ty + lineH > SIZE - panelMarginBot - 10) break;
-      if (!linea) { ty += lineH * 0.5; continue; }
-      ctx.fillText(linea, padX, ty);
-      ty += lineH;
-    }
-    ctx.restore();
-
-    // ── 6. Nombre del restaurante en la franja ───────────────
-    ctx.save();
-    ctx.font      = `bold ${Math.min(46, Math.max(28, Math.floor(franjaH * 0.44))}px Inter, Arial, sans-serif`;
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur  = 6;
-    // Centrar verticalmente en la franja
-    ctx.textBaseline = 'middle';
-    const franjaTextX = logoSrc ? logoPad * 2 + logoSize + 16 : padX;
-    ctx.fillText(nombre, franjaTextX, franjaY + franjaH / 2);
-    ctx.restore();
-
-    // ── 7. QR domicilio en esquina superior derecha ──────────
-    if (qrCanvas) {
-      const qrSize = 140;
-      const qrX = SIZE - qrSize - 40;
-      const qrY = 40;
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur  = 12;
-      _gcRoundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 14);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.restore();
-      ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
-    }
-
-    // ── 8. Descargar / Compartir ─────────────────────────────
-    const dataUrl  = canvas.toDataURL('image/jpeg', 0.92);
-    const fileName = `post_${nombre.replace(/\s+/g,'_').toLowerCase()}.jpg`;
-
-    if (navigator.share && navigator.canShare) {
-      try {
-        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
-        const file = new File([blob], fileName, { type: 'image/jpeg' });
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ title: nombre, files: [file] });
-          return;
-        }
-      } catch(e) { if (e.name === 'AbortError') return; }
-    }
-    const a = document.createElement('a');
-    a.download = fileName;
-    a.href = dataUrl;
-    a.click();
-    if (typeof showToast === 'function') showToast('🖼️ Imagen descargada');
-  }
-
-  // ── Helpers canvas ───────────────────────────────────────
-  function _gcFondoDegradado(ctx, size, color) {
-    const grd = ctx.createLinearGradient(0, 0, size, size);
-    grd.addColorStop(0, _gcDarken(color, 0.45));
-    grd.addColorStop(0.5, color);
-    grd.addColorStop(1, _gcDarken(color, 0.3));
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, size, size);
-    // Textura sutil: círculos translúcidos
-    ctx.save();
-    ctx.globalAlpha = 0.07;
-    ctx.fillStyle = '#ffffff';
-    [[size*0.85, size*0.15, size*0.55],[size*0.1, size*0.8, size*0.45]].forEach(([cx,cy,r]) => {
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-    });
-    ctx.restore();
-  }
-
-  function _gcDarken(hex, amt) {
-    // amt: 0–1, fracción para oscurecer
-    let c = hex.replace('#','');
-    if (c.length === 3) c = c.split('').map(x=>x+x).join('');
-    let r = parseInt(c.slice(0,2),16), g = parseInt(c.slice(2,4),16), b = parseInt(c.slice(4,6),16);
-    r = Math.max(0, Math.round(r*(1-amt)));
-    g = Math.max(0, Math.round(g*(1-amt)));
-    b = Math.max(0, Math.round(b*(1-amt)));
-    return '#' + [r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
-  }
-
-  function _gcRoundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x+r, y);
-    ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-    ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-    ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-    ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
-    ctx.closePath();
-  }
 
   // ── Sync nombre al abrir el accordion o el drawer ────────
   document.addEventListener('DOMContentLoaded', () => {
