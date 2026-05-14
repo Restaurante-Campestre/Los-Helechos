@@ -15,8 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+<!-- QR Engine nativo — sin dependencias externas -->
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -4808,8 +4807,12 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
           </div>
 
           <div class="qr2-color-row">
-            <label class="qr2-color-label">🎨 Color de los cuadros grandes</label>
+            <label class="qr2-color-label">🟩 Color del cuadro finder</label>
             <input type="color" class="qr2-color-input" id="qr2ColorMenu" value="#2d8a4e">
+          </div>
+          <div class="qr2-color-row">
+            <label class="qr2-color-label">⚫ Color del círculo interior</label>
+            <input type="color" class="qr2-color-input" id="qr2ColorInnerMenu" value="#1a1a26">
           </div>
 
           <button class="qr2-gen-btn menu-btn" onclick="qr2Generar('menu')">
@@ -4844,8 +4847,12 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
           </div>
 
           <div class="qr2-color-row">
-            <label class="qr2-color-label">🎨 Color de los cuadros grandes</label>
+            <label class="qr2-color-label">🟦 Color del cuadro finder</label>
             <input type="color" class="qr2-color-input" id="qr2ColorDom" value="#1565C0">
+          </div>
+          <div class="qr2-color-row">
+            <label class="qr2-color-label">⚫ Color del círculo interior</label>
+            <input type="color" class="qr2-color-input" id="qr2ColorInnerDom" value="#1a1a26">
           </div>
 
           <button class="qr2-gen-btn dom-btn" onclick="qr2Generar('dom')">
@@ -12128,6 +12135,7 @@ function cargarLogo(input) {
         try { fbSync('logo', { data: window.logoBase64 }); } catch(_) {}
         try { fbSync('decorImages/businessLogo', window.logoBase64); } catch(_) {}
         mostrarLogoPreview();
+        window._qr2LogoImg = null; // invalidar caché de logo para el engine QR
         showToast('✅ Logo del restaurante guardado');
       } catch(err) {
         console.error('cargarLogo error:', err);
@@ -19127,14 +19135,18 @@ window.meGetPreviewUrl = meGetPreviewUrl;
 <script>
 // ════════════════════════════════════════════════════════════
 // QR DOBLE — Menú Restaurante + Domicilios
-// Canvas puro + qrcodejs (sin workers, sin CDN en runtime)
+// Canvas puro — engine QR nativo ISO/IEC 18004 (zero deps)
 // Funciona en content://, file://, https://
 // ════════════════════════════════════════════════════════════
 
-const QR2_KEY_MENU = 'qr2_url_menu';
-const QR2_KEY_DOM  = 'qr2_url_dom';
+const QR2_KEY_MENU        = 'qr2_url_menu';
+const QR2_KEY_DOM         = 'qr2_url_dom';
+const QR2_KEY_COLOR_MENU  = 'qr2_color_menu';
+const QR2_KEY_COLOR_DOM   = 'qr2_color_dom';
+const QR2_KEY_INNER_MENU  = 'qr2_color_inner_menu';
+const QR2_KEY_INNER_DOM   = 'qr2_color_inner_dom';
 
-// Referencias a los canvas generados (para descarga)
+// Referencias a los canvas nativos generados (para descarga)
 const _qr2 = { menu: null, dom: null };
 
 // ── Inicializar al abrir el accordion ───────────────────────
@@ -19147,11 +19159,36 @@ function qr2Init() {
   if (inputMenu && urlMenu) inputMenu.value = urlMenu;
   if (inputDom  && urlDom)  inputDom.value  = urlDom;
 
+  // Restaurar colores guardados
+  const cMenu  = localStorage.getItem(QR2_KEY_COLOR_MENU);
+  const cDom   = localStorage.getItem(QR2_KEY_COLOR_DOM);
+  const ciMenu = localStorage.getItem(QR2_KEY_INNER_MENU);
+  const ciDom  = localStorage.getItem(QR2_KEY_INNER_DOM);
+  const elCM  = document.getElementById('qr2ColorMenu');
+  const elCD  = document.getElementById('qr2ColorDom');
+  const elCIM = document.getElementById('qr2ColorInnerMenu');
+  const elCID = document.getElementById('qr2ColorInnerDom');
+  if (elCM  && cMenu)  elCM.value  = cMenu;
+  if (elCD  && cDom)   elCD.value  = cDom;
+  if (elCIM && ciMenu) elCIM.value = ciMenu;
+  if (elCID && ciDom)  elCID.value = ciDom;
+
   const noLogo = document.getElementById('qr2NoLogo');
   if (noLogo) noLogo.classList.toggle('show', !window.logoBase64);
 
-  if (urlMenu) qr2Generar('menu');
-  if (urlDom)  qr2Generar('dom');
+  // Precargar logo como Image para el engine QR nativo
+  if (window.logoBase64 && !window._qr2LogoImg) {
+    const img = new Image();
+    img.onload = function() {
+      window._qr2LogoImg = img;
+      if (urlMenu) qr2Generar('menu');
+      if (urlDom)  qr2Generar('dom');
+    };
+    img.src = window.logoBase64;
+  } else {
+    if (urlMenu) qr2Generar('menu');
+    if (urlDom)  qr2Generar('dom');
+  }
 }
 
 // ── Cambio de tab ────────────────────────────────────────────
@@ -19179,155 +19216,238 @@ function qr2AutoSaveUrl(tipo) {
   }, 800);
 }
 
-// ── QR PURO: canvas nativo sin workers ni CDN en runtime ─────
-// Usa qrcodejs (ya cargado desde cdnjs en <head>) + canvas API
-// Funciona en content://, file://, https:// sin restricciones CSP
+// ══════════════════════════════════════════════════════════════
+// QR ENGINE PROPIO — ISO/IEC 18004 — ZERO DEPENDENCIES
+// GF(256) + Reed-Solomon + Canvas rendering con diseño custom
+// ══════════════════════════════════════════════════════════════
+const _QR_GF_EXP = new Uint8Array(512);
+const _QR_GF_LOG = new Uint8Array(256);
+(function _initGF() {
+  let x = 1;
+  for (let i = 0; i < 255; i++) {
+    _QR_GF_EXP[i] = x; _QR_GF_LOG[x] = i;
+    x <<= 1; if (x & 0x100) x ^= 0x11D;
+  }
+  for (let i = 255; i < 512; i++) _QR_GF_EXP[i] = _QR_GF_EXP[i - 255];
+})();
+function _gfMul(a, b) { return (a && b) ? _QR_GF_EXP[_QR_GF_LOG[a] + _QR_GF_LOG[b]] : 0; }
+function _polyMul(p, q) {
+  const r = new Array(p.length + q.length - 1).fill(0);
+  for (let i = 0; i < p.length; i++) for (let j = 0; j < q.length; j++) r[i+j] ^= _gfMul(p[i], q[j]);
+  return r;
+}
+function _rsEncode(data, ecLen) {
+  let g = [1];
+  for (let i = 0; i < ecLen; i++) g = _polyMul(g, [1, _QR_GF_EXP[i]]);
+  const msg = [...data, ...new Array(ecLen).fill(0)];
+  for (let i = 0; i < data.length; i++) {
+    const coef = msg[i];
+    if (coef) for (let j = 0; j < g.length; j++) msg[i+j] ^= _gfMul(g[j], coef);
+  }
+  return msg.slice(data.length);
+}
+const _QR_EC_BLOCKS = {
+  1:{L:[19,7,1],M:[16,10,1],Q:[13,13,1],H:[9,17,1]},
+  2:{L:[34,10,1],M:[28,16,1],Q:[22,22,1],H:[16,28,1]},
+  3:{L:[55,15,1],M:[44,26,1],Q:[34,18,2],H:[26,22,2]},
+  4:{L:[80,20,1],M:[64,18,2],Q:[48,26,2],H:[36,16,4]},
+  5:{L:[108,26,1],M:[86,24,2],Q:[62,18,4],H:[46,22,4]},
+  6:{L:[136,18,2],M:[108,16,4],Q:[76,24,4],H:[60,28,4]},
+  7:{L:[156,20,2],M:[124,18,4],Q:[88,18,6],H:[66,26,5]},
+  8:{L:[194,24,2],M:[154,22,4],Q:[110,22,6],H:[86,26,6]},
+  9:{L:[232,30,2],M:[182,22,5],Q:[132,20,8],H:[100,24,8]},
+  10:{L:[274,18,4],M:[216,26,5],Q:[154,24,8],H:[122,28,8]}
+};
+const _QR_ALIGN = {1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],8:[6,24,42],9:[6,26,46],10:[6,28,50]};
+function _qrSelectVersion(text, ecLevel) {
+  const n = new TextEncoder().encode(text).length;
+  for (let v = 1; v <= 10; v++) {
+    if (Math.ceil((4+8+n*8+4)/8) <= _QR_EC_BLOCKS[v][ecLevel][0]) return v;
+  }
+  return 10;
+}
+function _qrEncodeData(text, version, ecLevel) {
+  const [totalDC, ecPerBlock, blocks] = _QR_EC_BLOCKS[version][ecLevel];
+  const bytes = new TextEncoder().encode(text);
+  let bits = '0100' + bytes.length.toString(2).padStart(8,'0');
+  for (const b of bytes) bits += b.toString(2).padStart(8,'0');
+  bits += '0000';
+  while (bits.length % 8) bits += '0';
+  const pad = [0xEC,0x11]; let pi = 0;
+  while (bits.length/8 < totalDC) bits += pad[pi++%2].toString(2).padStart(8,'0');
+  const dc = [];
+  for (let i = 0; i < totalDC; i++) dc.push(parseInt(bits.slice(i*8,i*8+8),2));
+  const dcpb = Math.floor(totalDC/blocks), dcB = [], ecB = [];
+  for (let b = 0; b < blocks; b++) {
+    const s = b*dcpb, e = b===blocks-1?totalDC:s+dcpb;
+    const bd = dc.slice(s,e); dcB.push(bd); ecB.push(_rsEncode(bd,ecPerBlock));
+  }
+  const il = []; const mx = Math.max(...dcB.map(b=>b.length));
+  for (let i = 0; i < mx; i++) for (const b of dcB) if (i<b.length) il.push(b[i]);
+  for (let i = 0; i < ecPerBlock; i++) for (const b of ecB) il.push(b[i]);
+  let fb = ''; for (const byte of il) fb += byte.toString(2).padStart(8,'0');
+  fb += '0'.repeat([0,0,7,7,7,7,7,0,0,0][version]||0);
+  return fb;
+}
+function _qrGetMask(p,r,c){switch(p){case 0:return(r+c)%2===0;case 1:return r%2===0;case 2:return c%3===0;case 3:return(r+c)%3===0;case 4:return(Math.floor(r/2)+Math.floor(c/3))%2===0;case 5:return(r*c)%2+(r*c)%3===0;case 6:return((r*c)%2+(r*c)%3)%2===0;case 7:return((r+c)%2+(r*c)%3)%2===0;}}
+function _qrBuildMatrix(version, bits, ecLevel, maskPattern) {
+  const size = version*4+17;
+  const mat = Array.from({length:size},()=>new Array(size).fill(null));
+  const res = Array.from({length:size},()=>new Array(size).fill(false));
+  function sm(r,c,v){mat[r][c]=v;res[r][c]=true;}
+  function drawFinder(row,col){
+    for(let r=-1;r<=7;r++)for(let c=-1;c<=7;c++){
+      const rr=row+r,cc=col+c;
+      if(rr<0||rr>=size||cc<0||cc>=size)continue;
+      sm(rr,cc,(r===0||r===6||c===0||c===6||r>=2&&r<=4&&c>=2&&c<=4)?1:0);
+    }
+  }
+  drawFinder(0,0); drawFinder(0,size-7); drawFinder(size-7,0);
+  for(let i=8;i<size-8;i++){sm(6,i,i%2===0?1:0);sm(i,6,i%2===0?1:0);}
+  sm(4*version+9,8,1);
+  const aps=_QR_ALIGN[version]||[];
+  for(const r of aps)for(const c of aps){
+    if(res[r][c])continue;
+    for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++)
+      sm(r+dr,c+dc,(Math.abs(dr)===2||Math.abs(dc)===2||dr===0&&dc===0)?1:0);
+  }
+  for(let i=0;i<=8;i++){if(!res[8][i])res[8][i]=true;if(!res[i][8])res[i][8]=true;}
+  for(let i=size-8;i<size;i++){res[8][i]=true;res[i][8]=true;}
+  let bi=0; let up=true;
+  for(let right=size-1;right>=1;right-=2){
+    if(right===6)right=5;
+    for(let vert=0;vert<size;vert++){
+      const row=up?size-1-vert:vert;
+      for(let lr=0;lr<2;lr++){const col=right-lr;if(!res[row][col])mat[row][col]=bi<bits.length?parseInt(bits[bi++]):0;}
+    }
+    up=!up;
+  }
+  for(let r=0;r<size;r++)for(let c=0;c<size;c++)if(!res[r][c]&&_qrGetMask(maskPattern,r,c))mat[r][c]^=1;
+  // Format info
+  const EC_IND={L:0b01,M:0b00,Q:0b11,H:0b10};
+  let fmt=(EC_IND[ecLevel]<<3)|maskPattern;
+  let tmp=fmt; for(let i=0;i<10;i++)tmp=(tmp<<1)^((tmp>>9)?0x537:0);
+  const full=((fmt<<10)|tmp)^0b101010000010010;
+  const fb=[]; for(let i=14;i>=0;i--)fb.push((full>>i)&1);
+  const pos=[[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]];
+  for(let i=0;i<15;i++){const[r,c]=pos[i];mat[r][c]=fb[i];if(i<7)mat[size-1-i][8]=fb[i];else mat[8][size-15+i]=fb[i];}
+  return {mat,size};
+}
+function _qrSelectMask(version, bits, ecLevel) {
+  let best=0,bp=Infinity;
+  for(let m=0;m<8;m++){
+    const {mat,size}=_qrBuildMatrix(version,bits,ecLevel,m);
+    let p=0;
+    for(let r=0;r<size;r++){let run=1;for(let c=1;c<size;c++){if(mat[r][c]===mat[r][c-1]){run++;if(run===5)p+=3;else if(run>5)p++;}else run=1;}}
+    for(let c=0;c<size;c++){let run=1;for(let r=1;r<size;r++){if(mat[r][c]===mat[r-1][c]){run++;if(run===5)p+=3;else if(run>5)p++;}else run=1;}}
+    for(let r=0;r<size-1;r++)for(let c=0;c<size-1;c++)if(mat[r][c]===mat[r][c+1]&&mat[r][c]===mat[r+1][c]&&mat[r][c]===mat[r+1][c+1])p+=3;
+    if(p<bp){bp=p;best=m;}
+  }
+  return best;
+}
+function _qrRenderCanvas(canvas, mat, size, opts) {
+  // Render a 2× para logos y módulos nítidos; se muestra a 300px via CSS
+  const cs=600; canvas.width=cs; canvas.height=cs;
+  canvas.style.width='300px'; canvas.style.height='300px';
+  const ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const quiet=4; const ms=cs/(size+quiet*2);
+  ctx.fillStyle=opts.colorLight; ctx.fillRect(0,0,cs,cs);
+  const fps=[{r:0,c:0},{r:0,c:size-7},{r:size-7,c:0}];
+  function isInFinder(r,c){return fps.some(f=>r>=f.r&&r<f.r+7&&c>=f.c&&c<f.c+7);}
+  function drawModule(r,c){
+    const x=(c+quiet)*ms,y=(r+quiet)*ms,R=ms*0.38;
+    function has(dr,dc){const nr=r+dr,nc=c+dc;if(nr<0||nr>=size||nc<0||nc>=size)return false;if(isInFinder(nr,nc))return false;return mat[nr][nc]===1;}
+    const top=has(-1,0),bot=has(1,0),left=has(0,-1),right=has(0,1);
+    const rTL=(top||left)?0:R,rTR=(top||right)?0:R,rBR=(bot||right)?0:R,rBL=(bot||left)?0:R;
+    const bl=0.6,x0=left?x-bl:x,y0=top?y-bl:y,x1=right?x+ms+bl:x+ms,y1=bot?y+ms+bl:y+ms;
+    ctx.beginPath();
+    ctx.moveTo(x0+rTL,y0); ctx.lineTo(x1-rTR,y0);
+    if(rTR>0)ctx.quadraticCurveTo(x1,y0,x1,y0+rTR);else ctx.lineTo(x1,y0);
+    ctx.lineTo(x1,y1-rBR);
+    if(rBR>0)ctx.quadraticCurveTo(x1,y1,x1-rBR,y1);else ctx.lineTo(x1,y1);
+    ctx.lineTo(x0+rBL,y1);
+    if(rBL>0)ctx.quadraticCurveTo(x0,y1,x0,y1-rBL);else ctx.lineTo(x0,y1);
+    ctx.lineTo(x0,y0+rTL);
+    if(rTL>0)ctx.quadraticCurveTo(x0,y0,x0+rTL,y0);else ctx.lineTo(x0,y0);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle=opts.colorDark;
+  for(let r=0;r<size;r++)for(let c=0;c<size;c++) if(!isInFinder(r,c)&&mat[r][c]===1) drawModule(r,c);
+  // Finders custom
+  for(const f of fps){
+    const x=(f.c+quiet)*ms,y=(f.r+quiet)*ms,w=7*ms,bR=ms*1.6;
+    ctx.fillStyle=opts.colorFinder;
+    ctx.beginPath();ctx.moveTo(x+bR,y);ctx.lineTo(x+w-bR,y);ctx.quadraticCurveTo(x+w,y,x+w,y+bR);ctx.lineTo(x+w,y+w-bR);ctx.quadraticCurveTo(x+w,y+w,x+w-bR,y+w);ctx.lineTo(x+bR,y+w);ctx.quadraticCurveTo(x,y+w,x,y+w-bR);ctx.lineTo(x,y+bR);ctx.quadraticCurveTo(x,y,x+bR,y);ctx.closePath();ctx.fill();
+    const gp=ms,i1={x:x+gp,y:y+gp,w:w-gp*2,r:bR*0.6};
+    ctx.fillStyle=opts.colorLight;
+    ctx.beginPath();ctx.moveTo(i1.x+i1.r,i1.y);ctx.lineTo(i1.x+i1.w-i1.r,i1.y);ctx.quadraticCurveTo(i1.x+i1.w,i1.y,i1.x+i1.w,i1.y+i1.r);ctx.lineTo(i1.x+i1.w,i1.y+i1.w-i1.r);ctx.quadraticCurveTo(i1.x+i1.w,i1.y+i1.w,i1.x+i1.w-i1.r,i1.y+i1.w);ctx.lineTo(i1.x+i1.r,i1.y+i1.w);ctx.quadraticCurveTo(i1.x,i1.y+i1.w,i1.x,i1.y+i1.w-i1.r);ctx.lineTo(i1.x,i1.y+i1.r);ctx.quadraticCurveTo(i1.x,i1.y,i1.x+i1.r,i1.y);ctx.closePath();ctx.fill();
+    const cx=x+w/2,cy=y+w/2,iR=ms*1.5;
+    ctx.fillStyle=opts.colorFinderInner;
+    ctx.beginPath();ctx.arc(cx,cy,iR,0,Math.PI*2);ctx.fill();
+  }
+  // Logo central — radio más generoso (13% del canvas) para que se vea bien
+  const cx2=cs/2,cy2=cs/2,lr=cs*0.13,bgR=lr*1.18;
+  ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
+  ctx.beginPath();ctx.arc(cx2,cy2,bgR,0,Math.PI*2);ctx.strokeStyle=opts.colorFinder;ctx.lineWidth=bgR*0.15;ctx.stroke();
+  if(opts.logoImage){
+    ctx.save();ctx.beginPath();ctx.arc(cx2,cy2,lr,0,Math.PI*2);ctx.clip();
+    ctx.drawImage(opts.logoImage,cx2-lr,cy2-lr,lr*2,lr*2);ctx.restore();
+  } else {
+    ctx.font=`bold ${lr*1.1}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🍽️',cx2,cy2);
+  }
+}
 
+// ── QR PROPIO: engine nativo sin dependencias externas ───────
 function qr2Generar(tipo) {
-  const inputId    = tipo === 'menu' ? 'qr2UrlMenu'    : 'qr2UrlDom';
-  const canvasId   = tipo === 'menu' ? 'qr2CanvasMenu' : 'qr2CanvasDom';
-  const colorInput = document.getElementById(tipo === 'menu' ? 'qr2ColorMenu' : 'qr2ColorDom');
-  const color      = (colorInput && colorInput.value) ? colorInput.value : (tipo === 'menu' ? '#2d8a4e' : '#1565C0');
+  const inputId  = tipo==='menu' ? 'qr2UrlMenu' : 'qr2UrlDom';
+  const canvasId = tipo==='menu' ? 'qr2CanvasMenu' : 'qr2CanvasDom';
+  const colorInput      = document.getElementById(tipo==='menu' ? 'qr2ColorMenu'      : 'qr2ColorDom');
+  const colorInnerInput = document.getElementById(tipo==='menu' ? 'qr2ColorInnerMenu' : 'qr2ColorInnerDom');
+  const finderColor      = (colorInput      && colorInput.value)      ? colorInput.value      : (tipo==='menu' ? '#2d8a4e' : '#1565C0');
+  const finderInnerColor = (colorInnerInput && colorInnerInput.value) ? colorInnerInput.value : '#1a1a26';
 
   const input = document.getElementById(inputId);
   if (!input) return;
   const url = input.value.trim();
   if (!url) { if (typeof showToast === 'function') showToast('⚠️ Escribe la URL primero'); return; }
 
-  localStorage.setItem(tipo === 'menu' ? QR2_KEY_MENU : QR2_KEY_DOM, url);
+  localStorage.setItem(tipo==='menu' ? QR2_KEY_MENU       : QR2_KEY_DOM,       url);
+  localStorage.setItem(tipo==='menu' ? QR2_KEY_COLOR_MENU : QR2_KEY_COLOR_DOM, finderColor);
+  localStorage.setItem(tipo==='menu' ? QR2_KEY_INNER_MENU : QR2_KEY_INNER_DOM, finderInnerColor);
 
   const wrap = document.getElementById(canvasId);
   if (!wrap) return;
   wrap.innerHTML = '';
 
-  if (typeof QRCode === 'undefined') {
-    wrap.innerHTML = '<p style="color:#E53935;font-size:12px;text-align:center;padding:20px;">⚠️ Librería QR no disponible.</p>';
-    return;
-  }
-
-  // Paso 1: generar QR base en div oculto
-  const tmp = document.createElement('div');
-  tmp.style.cssText = 'position:absolute;left:-9999px;top:-9999px;visibility:hidden;';
-  document.body.appendChild(tmp);
-
-  let qrObj;
   try {
-    qrObj = new QRCode(tmp, {
-      text: url, width: 512, height: 512,
-      colorDark: '#111111', colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
+    const ecLevel = 'H';
+    const version = _qrSelectVersion(url, ecLevel);
+    const bits    = _qrEncodeData(url, version, ecLevel);
+    const mask    = _qrSelectMask(version, bits, ecLevel);
+    const {mat, size} = _qrBuildMatrix(version, bits, ecLevel, mask);
+
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);display:block;max-width:100%;';
+
+    // Logo: usar logoBase64 si existe
+    const logoImg = window._qr2LogoImg || null;
+    _qrRenderCanvas(canvas, mat, size, {
+      colorDark: '#1a1a26',
+      colorLight: '#ffffff',
+      colorFinder: finderColor,
+      colorFinderInner: finderInnerColor,
+      logoImage: logoImg
     });
+
+    wrap.appendChild(canvas);
+    // Guardar canvas para descarga
+    _qr2[tipo] = canvas;
+    _mostrarControlesQR(tipo, url);
   } catch(e) {
-    document.body.removeChild(tmp);
-    if (typeof showToast === 'function') showToast('⚠️ Error: ' + e.message);
-    return;
+    wrap.innerHTML = '<p style="color:#E53935;font-size:12px;text-align:center;padding:20px;">⚠️ Error generando QR: ' + e.message + '</p>';
   }
-
-  // Paso 2: componer canvas con colores de esquinas y logo
-  setTimeout(() => {
-    const srcCanvas = tmp.querySelector('canvas');
-    if (!srcCanvas) { document.body.removeChild(tmp); return; }
-
-    const SIZE = srcCanvas.width || 512;
-    const DPR  = Math.min(window.devicePixelRatio || 1, 3); // máx 3× para no exceder memoria
-    const dest = document.createElement('canvas');
-    dest.width = dest.height = SIZE * DPR;
-    const ctx = dest.getContext('2d');
-    ctx.scale(DPR, DPR);
-
-    // Dibujar QR base en blanco y negro primero
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, SIZE, SIZE);
-    ctx.drawImage(srcCanvas, 0, 0, SIZE, SIZE);
-
-    // Colorear SOLO los finder patterns (3 cuadros grandes en esquinas del QR).
-    // El resto de módulos de datos permanece negro.
-    const hexToRgb = h => {
-      const r = parseInt(h.slice(1,3),16),
-            g = parseInt(h.slice(3,5),16),
-            b = parseInt(h.slice(5,7),16);
-      return [r,g,b];
-    };
-    const [cr, cg, cb] = hexToRgb(color);
-    const imgData = ctx.getImageData(0, 0, SIZE * DPR, SIZE * DPR);
-    const d = imgData.data;
-    const W = SIZE * DPR;
-
-    // Detectar tamaño del módulo: contar px oscuros consecutivos desde (0,0)
-    // qrcodejs no agrega quiet zone, empieza en (0,0) con módulo oscuro.
-    const isDark = (x, y) => {
-      const idx = (y * W + x) * 4;
-      return d[idx] < 80 && d[idx+1] < 80 && d[idx+2] < 80;
-    };
-    let mSize = 1;
-    for (let x = 1; x < Math.floor(W / 7); x++) {
-      if (isDark(x, 0)) mSize = x + 1; else break;
-    }
-    const FP = 7 * mSize; // finder pattern = 7 módulos × mSize px/módulo
-
-    // Colorear un rectángulo: solo píxeles oscuros
-    const colorRect = (x0, y0, w, h) => {
-      for (let py = y0; py < y0 + h && py < W; py++) {
-        for (let px = x0; px < x0 + w && px < W; px++) {
-          const idx = (py * W + px) * 4;
-          if (d[idx] < 80 && d[idx+1] < 80 && d[idx+2] < 80) {
-            d[idx] = cr; d[idx+1] = cg; d[idx+2] = cb;
-          }
-        }
-      }
-    };
-
-    // Los 3 finder patterns: superior-izquierda, superior-derecha, inferior-izquierda
-    colorRect(0,      0,      FP, FP);
-    colorRect(W - FP, 0,      FP, FP);
-    colorRect(0,      W - FP, FP, FP);
-
-    // putImageData ignora transformaciones del ctx (scale),
-    // reseteamos temporalmente y restauramos para el logo
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.putImageData(imgData, 0, 0);
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-    const terminar = () => {
-      document.body.removeChild(tmp);
-      dest.style.cssText = 'width:260px;height:260px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);display:block;';
-      wrap.appendChild(dest);
-      _qr2[tipo] = dest;
-      _mostrarControlesQR(tipo, url);
-    };
-
-    // Paso 3: logo circular encima si existe
-    if (window.logoBase64) {
-      // LOGO ocupa 22% del QR (dentro del 30% de capacidad de corrección nivel H)
-      // Todas las coordenadas deben usar SIZE*DPR porque ctx.scale(DPR,DPR) ya fue aplicado,
-      // así que trabajamos en espacio lógico (SIZE), no en píxeles físicos.
-      const LOGO = Math.round(SIZE * 0.22);
-      const logo = new Image();
-      logo.onload = () => {
-        const cx = SIZE/2, cy = SIZE/2;
-        // Fondo blanco circular con margen de 6px alrededor del logo
-        const pad = 6;
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(cx, cy, LOGO/2 + pad, 0, Math.PI*2);
-        ctx.fill();
-        // Clip circular y dibujar logo
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, LOGO/2, 0, Math.PI*2);
-        ctx.clip();
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(logo, cx - LOGO/2, cy - LOGO/2, LOGO, LOGO);
-        ctx.restore();
-        terminar();
-      };
-      logo.onerror = terminar;
-      logo.src = window.logoBase64;
-    } else {
-      terminar();
-    }
-  }, 150);
 }
 
 // ── Helper: mostrar link + botón descarga + toast ─────────────
@@ -19361,12 +19481,13 @@ function qr2CopiarUrl(tipo) {
 // ── Descargar QR como PNG ─────────────────────────────────────
 function qr2Descargar(tipo) {
   const canvas = _qr2[tipo];
-  if (!canvas || typeof canvas.toDataURL !== 'function') {
+  if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
     if (typeof showToast === 'function') showToast('⚠️ Primero genera el QR');
     return;
   }
+  const name = (tipo === 'menu' ? 'qr_menu_restaurante' : 'qr_domicilios');
   const a = document.createElement('a');
-  a.download = (tipo === 'menu' ? 'qr_menu_restaurante' : 'qr_domicilios') + '.png';
+  a.download = name + '.png';
   a.href = canvas.toDataURL('image/png');
   a.click();
 }
@@ -19374,7 +19495,7 @@ function qr2Descargar(tipo) {
 // ── Compartir QR como imagen ──────────────────────────────────
 async function qr2Compartir(tipo) {
   const canvas = _qr2[tipo];
-  if (!canvas || typeof canvas.toDataURL !== 'function') {
+  if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
     if (typeof showToast === 'function') showToast('⚠️ Primero genera el QR');
     return;
   }
@@ -19383,26 +19504,15 @@ async function qr2Compartir(tipo) {
   const fileName = (tipo === 'menu' ? 'qr_menu_restaurante' : 'qr_domicilios') + '.png';
 
   try {
-    // Convertir canvas a Blob
     const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
     const file = new File([blob], fileName, { type: 'image/png' });
 
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      // Web Share API con imagen
-      await navigator.share({
-        title: 'QR Restaurante',
-        text: url || 'Escanea este QR',
-        files: [file]
-      });
+      await navigator.share({ title: 'QR Restaurante', text: url || 'Escanea este QR', files: [file] });
     } else if (navigator.share) {
-      // Web Share API solo URL (sin imagen)
       await navigator.share({ title: 'QR Restaurante', text: url || 'Escanea este QR', url: url || undefined });
     } else {
-      // Fallback: descargar la imagen
-      const a = document.createElement('a');
-      a.download = fileName;
-      a.href = canvas.toDataURL('image/png');
-      a.click();
+      const a = document.createElement('a'); a.download = fileName; a.href = canvas.toDataURL('image/png'); a.click();
       if (typeof showToast === 'function') showToast('💾 QR descargado (compartir no disponible en este navegador)');
     }
   } catch(e) {
