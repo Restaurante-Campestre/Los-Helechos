@@ -19972,45 +19972,6 @@ window.qr2Compartir  = qr2Compartir;
     } catch(e) {}
   }
 
-  // ── Toggle QR de domicilio ───────────────────────────────
-  window.gcToggleQrDom = function(chk) {
-    const slider = document.getElementById('gc-qr-domicilio-slider');
-    const knob = slider?.querySelector('span');
-    if (chk.checked) {
-      if (slider) slider.style.background = '#00897B';
-      if (knob)   knob.style.transform = 'translateX(18px)';
-      // Intentar renderizar el QR guardado
-      gcRenderQrDomPreview(true);
-    } else {
-      if (slider) slider.style.background = '#ccc';
-      if (knob)   knob.style.transform = 'translateX(0px)';
-      const prev = document.getElementById('gc-qr-dom-preview');
-      const noqr = document.getElementById('gc-qr-dom-noqr');
-      if (prev) prev.style.display = 'none';
-      if (noqr) noqr.style.display = 'none';
-    }
-  };
-
-  function gcRenderQrDomPreview(show) {
-    const prev = document.getElementById('gc-qr-dom-preview');
-    const noqr = document.getElementById('gc-qr-dom-noqr');
-    if (!show) { if (prev) prev.style.display='none'; if (noqr) noqr.style.display='none'; return; }
-    // Intentar copiar desde el canvas real del QR domicilios (qr2)
-    const srcCanvas = (window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement) ? window._qr2['dom'] : null;
-    const destCanvas = document.getElementById('gc-qr-dom-canvas');
-    if (srcCanvas && destCanvas) {
-      destCanvas.width  = srcCanvas.width;
-      destCanvas.height = srcCanvas.height;
-      destCanvas.getContext('2d').drawImage(srcCanvas, 0, 0);
-      if (prev) prev.style.display = 'block';
-      if (noqr) noqr.style.display = 'none';
-    } else {
-      if (prev) prev.style.display = 'none';
-      if (noqr) noqr.style.display = 'block';
-    }
-  }
-  window.gcRenderQrDomPreview = gcRenderQrDomPreview;
-
   // ── Buscador de platos ───────────────────────────────────
   window.gcBuscarPlato = function(q) {
     const clearBtn = document.getElementById('gc-buscar-clear');
@@ -20067,14 +20028,15 @@ window.qr2Compartir  = qr2Compartir;
     // Llenar campo oculto
     const platoInput = document.getElementById('gc-plato');
     if (platoInput) platoInput.value = nombre;
-    // Llenar precio si está vacío o venía del buscador anterior
+    // Llenar precio solo si el campo está vacío o tenía precio auto-cargado antes
     const precioInput = document.getElementById('gc-precio');
-    if (precioInput && precio) {
+    const badge = document.getElementById('gc-precio-auto-badge');
+    const eraAuto = badge && badge.style.display !== 'none';
+    if (precioInput && precio && (!precioInput.value.trim() || eraAuto)) {
       precioInput.value = precio;
       precioInput.style.background = 'rgba(0,137,123,0.13)';
       precioInput.style.borderColor = '#00897B';
       precioInput.style.color = '#00695C';
-      const badge = document.getElementById('gc-precio-auto-badge');
       if (badge) badge.style.display = 'inline-block';
     }
     // Auto-rellenar ingredientes desde la descripción del plato
@@ -20105,7 +20067,7 @@ window.qr2Compartir  = qr2Compartir;
   // ── Foto del plato en el generador ───────────────────────
   window._gcFotoActual = '';
 
-  window._gcSetFoto = function(src) {
+  function _gcSetFoto(src) {
     window._gcFotoActual = src || '';
     const wrap = document.getElementById('gc-foto-wrap');
     const img  = document.getElementById('gc-foto-img');
@@ -20289,7 +20251,10 @@ window.qr2Compartir  = qr2Compartir;
 
     if (_gcTipo === 'instagram') {
       const hashtags = (document.getElementById('gc-hashtags')?.value || '').trim();
-      const hashStr = hashtags ? '\n#' + hashtags.replace(/[#,]/g,'').split(' ').join(' #') : '';
+      const hashStr = hashtags
+        ? '\n' + hashtags.replace(/[,;]+/g,' ').split(/\s+/).filter(Boolean)
+            .map(t => t.startsWith('#') ? t : '#' + t).join(' ')
+        : '';
       const pStr = p ? `\n\n💰 ${p}` : '';
       const cuerpos = [
         `Hoy te traemos lo que más amamos: *${plato}* ${emoji}\n\nPreparado con ingredientes frescos y todo el amor de nuestra cocina.${pStr}`,
@@ -20304,7 +20269,7 @@ window.qr2Compartir  = qr2Compartir;
     if (_gcTipo === 'descripcion') {
       const ings = (document.getElementById('gc-ingredientes')?.value || '').trim();
       const ingStr = ings ? ` elaborado con ${ings}` : '';
-      const pStr = p ? `\n\n**Precio:** ${p}` : '';
+      const pStr = p ? `\n\n💰 Precio: ${p}` : '';
       const cuerpos = [
         `Nuestra *${plato}*${ingStr} es un homenaje a la cocina tradicional. Cada elemento está cuidadosamente seleccionado para ofrecerte una experiencia completa de sabores y texturas.`,
         `La *${plato}* de ${nombre}${ingStr} es mucho más que un plato: es una tradición. Preparada diariamente con los mejores ingredientes frescos.`,
@@ -20376,10 +20341,6 @@ window.qr2Compartir  = qr2Compartir;
     lista.innerHTML = '';
     const etiquetas = { instagram: '📱 Instagram', descripcion: '🍽️ Menú', promocion: '🎉 Promoción', whatsapp: '💬 WhatsApp' };
 
-    // ── Verificar si hay QR de domicilio para la imagen ──
-    const qrCanvas  = (window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement)
-      ? window._qr2['dom'] : null;
-
     textos.forEach((texto, i) => {
       const div = document.createElement('div');
       div.style.cssText = 'background:rgba(21,101,192,0.05);border-radius:10px;padding:12px;margin-bottom:10px;border:1.5px solid rgba(21,101,192,0.18);';
@@ -20438,169 +20399,241 @@ window.qr2Compartir  = qr2Compartir;
     });
   }
 
-  // Dibuja texto con saltos de línea, respetando un ancho máximo. Devuelve altura total usada.
-  function _gcDrawWrappedText(ctx, text, x, y, maxWidth, lineH) {
-    // Quitar asteriscos de markdown
-    const clean = text.replace(/\*\*?([^*]+)\*\*?/g, '$1');
-    const lineas = clean.split('\n');
-    let curY = y;
-    for (const linea of lineas) {
-      if (!linea.trim()) { curY += lineH * 0.55; continue; }
-      const palabras = linea.split(' ');
-      let actual = '';
-      for (const pal of palabras) {
-        const prueba = actual ? actual + ' ' + pal : pal;
-        if (ctx.measureText(prueba).width > maxWidth && actual) {
-          ctx.fillText(actual, x, curY);
-          curY += lineH;
-          actual = pal;
-        } else {
-          actual = prueba;
-        }
-      }
-      if (actual) { ctx.fillText(actual, x, curY); curY += lineH; }
-    }
-    return curY;
-  }
-
   async function _gcRenderImagen(textoRaw) {
-    const SIZE   = 1080;
+    const W = 1080, H = 1350; // formato 4:5 — ideal para Instagram/Facebook
     const canvas = document.createElement('canvas');
-    canvas.width  = SIZE;
-    canvas.height = SIZE;
+    canvas.width  = W;
+    canvas.height = H;
     const ctx = canvas.getContext('2d');
 
-    // ── 1. Leer datos actuales ───────────────────────────────
+    // ── 1. Datos ─────────────────────────────────────────────
     const nombre   = gcGetNombre();
     const fotoSrc  = window._gcFotoActual || '';
     const logoSrc  = window.logoBase64    || '';
-    const qrToggle = document.getElementById('gc-qr-domicilio-toggle');
-    const mostrarQr = qrToggle && qrToggle.checked;
-    const qrCanvas  = (mostrarQr && window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement)
-                      ? window._qr2['dom'] : null;
+    const plato    = (document.getElementById('gc-plato')?.value  || '').trim();
+    const precio   = _gcPrecioVisible ? (document.getElementById('gc-precio')?.value || '').trim() : '';
+    const tel1     = (document.getElementById('gc-tel-1')?.value  || '').trim();
+    const tel2     = (document.getElementById('gc-tel-2')?.value  || '').trim();
+    const dir      = (document.getElementById('gc-direccion-extra')?.value || '').trim();
+    const ig       = (document.getElementById('gc-red-instagram')?.value || '').trim();
+    const qrCanvas = (window._qr2 && window._qr2['dom'] instanceof HTMLCanvasElement) ? window._qr2['dom'] : null;
 
-    // ── Obtener color de marca desde pos_config ──────────────
-    let brandColor = '#FF441A';
+    // Color de marca
+    let brandColor = '#E65100';
     try {
-      const cfg = JSON.parse(localStorage.getItem('pos_menu_settings') || localStorage.getItem('pos_menu_settings_v1') || '{}');
-      if (cfg.accentColor) brandColor = cfg.accentColor;
+      const raw = localStorage.getItem('pos_menu_settings_v1') || localStorage.getItem('pos_menu_settings') || '{}';
+      const cfg = JSON.parse(raw);
+      if (cfg.colorPrimario) brandColor = cfg.colorPrimario;
+      else if (cfg.accentColor) brandColor = cfg.accentColor;
     } catch(_) {}
+    try {
+      const cfg2 = JSON.parse(localStorage.getItem('pos_config') || '{}');
+      if (cfg2.colorMarca) brandColor = cfg2.colorMarca;
+    } catch(_) {}
+    const brandDark  = _gcDarken(brandColor, 0.45);
+    const brandLight = _gcLighten(brandColor, 0.25);
 
-    // ── 2. Fondo con foto o degradado ───────────────────────
+    // ── 2. Zona FOTO (top 45%) ───────────────────────────────
+    const fotoH = Math.round(H * 0.44);
     if (fotoSrc) {
       const foto = await _loadImg(fotoSrc);
       if (foto) {
-        // Foto de fondo con overlay oscuro
         const ratio = foto.naturalWidth / foto.naturalHeight;
         let sx = 0, sy = 0, sw = foto.naturalWidth, sh = foto.naturalHeight;
-        if (ratio > 1) { sw = foto.naturalHeight; sx = (foto.naturalWidth - sw) / 2; }
-        else           { sh = foto.naturalWidth;  sy = (foto.naturalHeight - sh) / 2; }
-        ctx.drawImage(foto, sx, sy, sw, sh, 0, 0, SIZE, SIZE);
-        // Overlay degradado de abajo hacia arriba
-        const ov = ctx.createLinearGradient(0, 0, 0, SIZE);
-        ov.addColorStop(0,   'rgba(0,0,0,0.55)');
-        ov.addColorStop(0.38,'rgba(0,0,0,0.18)');
-        ov.addColorStop(0.62,'rgba(0,0,0,0.28)');
-        ov.addColorStop(1,   'rgba(0,0,0,0.82)');
-        ctx.fillStyle = ov;
-        ctx.fillRect(0, 0, SIZE, SIZE);
+        if (ratio > W / fotoH) { sh = foto.naturalWidth * fotoH / W; sy = (foto.naturalHeight - sh) / 2; }
+        else                   { sw = foto.naturalHeight * W / fotoH; sx = (foto.naturalWidth - sw) / 2; }
+        ctx.drawImage(foto, sx, sy, sw, sh, 0, 0, W, fotoH);
       } else {
-        _gcFondoDegradado(ctx, SIZE, brandColor);
+        _gcFondoDegradado(ctx, W, fotoH, brandColor);
       }
     } else {
-      _gcFondoDegradado(ctx, SIZE, brandColor);
+      _gcFondoDegradado(ctx, W, fotoH, brandColor);
     }
 
-    // ── 3. Franja inferior de marca ─────────────────────────
-    const franjaH = 110;
-    const franjaY = SIZE - franjaH;
-    const fg = ctx.createLinearGradient(0, franjaY, SIZE, SIZE);
-    fg.addColorStop(0, brandColor + 'EE');
-    fg.addColorStop(1, _gcDarken(brandColor, 0.35) + 'EE');
-    ctx.fillStyle = fg;
-    ctx.fillRect(0, franjaY, SIZE, franjaH);
+    // Degradado de transición foto → panel
+    const grad = ctx.createLinearGradient(0, fotoH - 80, 0, fotoH + 40);
+    grad.addColorStop(0, 'rgba(15,15,15,0)');
+    grad.addColorStop(1, 'rgba(15,15,15,1)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, fotoH - 80, W, 120);
 
-    // ── 4. Logo ─────────────────────────────────────────────
-    let logoH = 0;
+    // ── 3. Zona TEXTO (fondo oscuro) ─────────────────────────
+    const panelY = fotoH;
+    const panelH = H - fotoH;
+    ctx.fillStyle = '#0F0F0F';
+    ctx.fillRect(0, panelY, W, panelH);
+
+    // Línea de acento superior
+    ctx.fillStyle = brandColor;
+    ctx.fillRect(0, panelY, W, 6);
+
+    // ── 4. Logo en la foto (esquina sup-izq) ─────────────────
+    let logoDrawn = false;
     if (logoSrc) {
       const logo = await _loadImg(logoSrc);
       if (logo) {
-        const maxLogoH = 90, maxLogoW = 200;
-        const lr = logo.naturalWidth / logo.naturalHeight;
-        let lw = maxLogoH * lr, lh = maxLogoH;
-        if (lw > maxLogoW) { lw = maxLogoW; lh = lw / lr; }
-        const lx = 48, ly = 48;
-        // Sombra suave
+        const lSize = 110;
+        const lPad  = 36;
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
         ctx.shadowBlur  = 18;
-        ctx.drawImage(logo, lx, ly, lw, lh);
+        ctx.fillStyle   = 'rgba(255,255,255,0.92)';
+        ctx.beginPath();
+        ctx.arc(lPad + lSize/2, lPad + lSize/2, lSize/2 + 8, 0, Math.PI*2);
+        ctx.fill();
         ctx.restore();
-        logoH = lh + 20;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(lPad + lSize/2, lPad + lSize/2, lSize/2, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(logo, lPad, lPad, lSize, lSize);
+        ctx.restore();
+        logoDrawn = true;
       }
     }
 
-    // ── 5. Nombre del restaurante (franja inferior) ─────────
+    // ── 5. Nombre restaurante (sobre foto, esquina sup-der) ──
     ctx.save();
-    ctx.font = 'bold 38px Inter, Arial, sans-serif';
+    ctx.font      = 'bold 34px Arial, sans-serif';
     ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur  = 8;
-    ctx.fillText(nombre, 48, franjaY + 52);
-    ctx.restore();
-
-    // ── 6. Texto del post ────────────────────────────────────
-    const textoPadX = 52;
-    const textoMaxW  = SIZE - textoPadX * 2 - (qrCanvas ? 200 : 0);
-    const textoStartY = Math.max(logoH + 80, 200);
-    const textoEndY   = franjaY - 30;
-
-    // Calcular tamaño de fuente adaptativo
-    const disponible = textoEndY - textoStartY;
-    const lineas = textoRaw.replace(/\*\*?([^*]+)\*\*?/g,'$1').split('\n').filter(l => l.trim());
-    const fontSz = Math.min(36, Math.max(22, Math.floor(disponible / (lineas.length + 2) * 0.72)));
-    const lineH  = fontSz * 1.55;
-
-    ctx.save();
-    ctx.font      = `${fontSz}px Inter, Arial, sans-serif`;
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.textAlign = 'right';
+    ctx.shadowColor = 'rgba(0,0,0,0.7)';
     ctx.shadowBlur  = 10;
-    _gcDrawWrappedText(ctx, textoRaw, textoPadX, textoStartY, textoMaxW, lineH);
+    ctx.textBaseline = 'top';
+    ctx.fillText(nombre.toUpperCase(), W - 36, 42);
     ctx.restore();
 
-    // ── 7. QR de domicilio (esquina inferior derecha) ────────
-    if (qrCanvas) {
-      const qrSize = 160;
-      const qrX = SIZE - qrSize - 48;
-      const qrY = franjaY - qrSize - 16;
-      // Fondo blanco redondeado
+    // ── 6. Nombre del plato ───────────────────────────────────
+    const txtPad = 52;
+    let curY = panelY + 54;
+
+    if (plato) {
       ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur  = 16;
-      _gcRoundRect(ctx, qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 16);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
+      ctx.font      = 'bold 62px Arial, sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      // Word-wrap el nombre del plato
+      const platoLines = _gcWrap(ctx, plato.toUpperCase(), W - txtPad * 2);
+      for (const ln of platoLines) {
+        ctx.fillText(ln, txtPad, curY);
+        curY += 70;
+      }
       ctx.restore();
-      ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
-      // Etiqueta
-      ctx.save();
-      ctx.font      = 'bold 20px Inter, Arial, sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur  = 6;
-      ctx.fillText('🛵 Pide a domicilio', qrX + qrSize / 2, qrY + qrSize + 36);
-      ctx.restore();
+      curY += 4;
     }
 
-    // ── 8. Descargar / Compartir ─────────────────────────────
-    const dataUrl  = canvas.toDataURL('image/jpeg', 0.92);
-    const fileName = `post_${nombre.replace(/\s+/g,'_').toLowerCase()}.jpg`;
+    // ── 7. Precio destacado ───────────────────────────────────
+    if (precio) {
+      // Caja de color
+      const precioText = precio;
+      ctx.save();
+      ctx.font = 'bold 82px Arial, sans-serif';
+      const pw = ctx.measureText(precioText).width;
+      const ph = 96, py = curY, px = txtPad - 12;
+      ctx.fillStyle = brandColor;
+      _gcRoundRect(ctx, px, py - 72, pw + 48, ph, 14);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(precioText, px + 24, py);
+      ctx.restore();
+      curY += ph + 18;
+    }
+
+    // ── 8. Cuerpo del texto ───────────────────────────────────
+    // Limpiar asteriscos de markdown
+    const cuerpo = textoRaw
+      .replace(/\*\*?([^*]+)\*\*?/g, '$1')
+      .split('\n')
+      .filter(l => l.trim())
+      // Quitar líneas que ya están como plato o precio
+      .filter(l => !l.includes(plato) && !(precio && l.includes(precio)))
+      .slice(0, 6); // máx 6 líneas para no desbordar
+
+    ctx.save();
+    ctx.textAlign    = 'left';
+    ctx.textBaseline = 'alphabetic';
+    for (const linea of cuerpo) {
+      if (curY > H - 200) break;
+      // Detectar si es emoji-línea de contacto/info → fuente más pequeña
+      const esInfo = /^[📞📍📲👍📸🎵🛵⏰💰]/.test(linea);
+      const fz = esInfo ? 34 : 40;
+      ctx.font      = esInfo ? `${fz}px Arial, sans-serif` : `bold ${fz}px Arial, sans-serif`;
+      ctx.fillStyle = esInfo ? '#AAAAAA' : '#FFFFFF';
+      const lineas  = _gcWrap(ctx, linea, W - txtPad * 2);
+      for (const ln of lineas) {
+        if (curY > H - 190) break;
+        ctx.fillText(ln, txtPad, curY);
+        curY += fz * 1.45;
+      }
+      curY += 6;
+    }
+    ctx.restore();
+
+    // ── 9. Franja de contacto inferior ───────────────────────
+    const footH  = 130;
+    const footY  = H - footH;
+    // Fondo degradado de marca
+    const footGrad = ctx.createLinearGradient(0, footY, W, footY + footH);
+    footGrad.addColorStop(0, brandColor);
+    footGrad.addColorStop(1, brandDark);
+    ctx.fillStyle = footGrad;
+    ctx.fillRect(0, footY, W, footH);
+
+    // Separador
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(0, footY, W, 2);
+
+    ctx.save();
+    ctx.textBaseline = 'middle';
+    ctx.textAlign    = 'left';
+    const footMidY   = footY + footH / 2;
+
+    // QR a la derecha si existe
+    let footTextMaxX = W - txtPad;
+    if (qrCanvas) {
+      const qrS = footH - 20;
+      const qrX = W - qrS - 20;
+      const qrY2 = footY + 10;
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      _gcRoundRect(ctx, qrX - 4, qrY2 - 4, qrS + 8, qrS + 8, 8);
+      ctx.fill();
+      ctx.drawImage(qrCanvas, qrX, qrY2, qrS, qrS);
+      ctx.restore();
+      footTextMaxX = qrX - 20;
+    }
+
+    // Teléfonos
+    const tels = [tel1, tel2].filter(Boolean);
+    if (tels.length) {
+      ctx.font      = 'bold 40px Arial, sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText('📞 ' + tels.join('  ·  '), txtPad, footMidY - (dir ? 22 : 0));
+    }
+    // Dirección
+    if (dir) {
+      ctx.font      = '32px Arial, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.82)';
+      ctx.fillText('📍 ' + dir, txtPad, footMidY + (tels.length ? 30 : 0));
+    }
+    // Si no hay tel ni dir: nombre del restaurante
+    if (!tels.length && !dir) {
+      ctx.font      = 'bold 40px Arial, sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(nombre, txtPad, footMidY);
+    }
+    ctx.restore();
+
+    // ── 10. Descargar / Compartir ─────────────────────────────
+    const dataUrl  = canvas.toDataURL('image/jpeg', 0.93);
+    const fileName = 'post_' + nombre.replace(/\s+/g,'_').toLowerCase() + '.jpg';
 
     if (navigator.share && navigator.canShare) {
       try {
-        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.93));
         const file = new File([blob], fileName, { type: 'image/jpeg' });
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({ title: nombre, files: [file] });
@@ -20608,7 +20641,6 @@ window.qr2Compartir  = qr2Compartir;
         }
       } catch(e) { if (e.name === 'AbortError') return; }
     }
-    // Fallback: descarga directa
     const a = document.createElement('a');
     a.download = fileName;
     a.href = dataUrl;
@@ -20616,32 +20648,47 @@ window.qr2Compartir  = qr2Compartir;
     if (typeof showToast === 'function') showToast('🖼️ Imagen descargada');
   }
 
+  // ── Word-wrap helper ─────────────────────────────────────
+  function _gcWrap(ctx, text, maxW) {
+    const words = text.split(' ');
+    const lines = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
+      else cur = test;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
   // ── Helpers canvas ───────────────────────────────────────
-  function _gcFondoDegradado(ctx, size, color) {
-    const grd = ctx.createLinearGradient(0, 0, size, size);
+  function _gcFondoDegradado(ctx, w, h, color) {
+    const grd = ctx.createLinearGradient(0, 0, w, h);
     grd.addColorStop(0, _gcDarken(color, 0.45));
     grd.addColorStop(0.5, color);
     grd.addColorStop(1, _gcDarken(color, 0.3));
     ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, size, size);
-    // Textura sutil: círculos translúcidos
-    ctx.save();
-    ctx.globalAlpha = 0.07;
-    ctx.fillStyle = '#ffffff';
-    [[size*0.85, size*0.15, size*0.55],[size*0.1, size*0.8, size*0.45]].forEach(([cx,cy,r]) => {
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-    });
-    ctx.restore();
+    ctx.fillRect(0, 0, w, h);
   }
 
   function _gcDarken(hex, amt) {
-    // amt: 0–1, fracción para oscurecer
     let c = hex.replace('#','');
     if (c.length === 3) c = c.split('').map(x=>x+x).join('');
     let r = parseInt(c.slice(0,2),16), g = parseInt(c.slice(2,4),16), b = parseInt(c.slice(4,6),16);
     r = Math.max(0, Math.round(r*(1-amt)));
     g = Math.max(0, Math.round(g*(1-amt)));
     b = Math.max(0, Math.round(b*(1-amt)));
+    return '#' + [r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+  }
+
+  function _gcLighten(hex, amt) {
+    let c = hex.replace('#','');
+    if (c.length === 3) c = c.split('').map(x=>x+x).join('');
+    let r = parseInt(c.slice(0,2),16), g = parseInt(c.slice(2,4),16), b = parseInt(c.slice(4,6),16);
+    r = Math.min(255, Math.round(r + (255 - r) * amt));
+    g = Math.min(255, Math.round(g + (255 - g) * amt));
+    b = Math.min(255, Math.round(b + (255 - b) * amt));
     return '#' + [r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
   }
 
