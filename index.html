@@ -1989,10 +1989,11 @@
 
   /* ── HORARIOS ───────────────────────────────────────── */
   .horario-row {
-    display: flex; align-items: flex-start;
+    display: flex; align-items: center;
     padding: 10px 12px; background: var(--blanco);
     border: 1.5px solid var(--borde); border-radius: var(--r-sm);
     transition: border-color 0.2s; position: relative;
+    min-height: 64px;
   }
   .horario-row.cerrado { opacity: 0.55; min-height: 48px; }
   .horario-dia {
@@ -2021,7 +2022,7 @@
     display: flex; align-items: center; gap: 6px;
   }
   .horario-times {
-    display: flex; flex-direction: column; gap: 6px;
+    display: flex; flex-direction: row; align-items: center; gap: 6px;
     font-size: 12px; color: var(--gris); flex: 1;
   }
   .horario-times-fila {
@@ -2048,6 +2049,38 @@
     flex: 1; font-size: 12px; font-weight: 600; color: var(--gris);
     padding-top: 2px;
   }
+
+  /* ── Botones picker de horario ──────────────────────────── */
+  .horario-time-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 110px; height: 56px; flex-shrink: 0;
+    padding: 0; border-radius: 12px;
+    border: 1.5px solid #CCCCCC;
+    background: #F5F5F5;
+    cursor: pointer; font-family: inherit;
+    gap: 2px; transition: border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body.dark .horario-time-btn {
+    border-color: #333333; background: #252525;
+  }
+  .horario-time-btn:active {
+    border-color: #888; background: #EBEBEB;
+  }
+  body.dark .horario-time-btn:active {
+    border-color: #555; background: #2E2E2E;
+  }
+  .tp-lbl-txt {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: #999999; line-height: 1;
+  }
+  body.dark .tp-lbl-txt { color: #666666; }
+  .tp-val-txt {
+    font-size: 18px; font-weight: 800;
+    font-family: 'DM Mono', monospace;
+    color: #1A1A1A; letter-spacing: -0.5px; line-height: 1;
+  }
+  body.dark .tp-val-txt { color: #EEEEEE; }
 
   /* ── MODAL PRECIO ────────────────────────────────────── */
   .precio-modal-input {
@@ -2964,6 +2997,117 @@
   .faltante-monto { font-size: 20px; font-weight: 900; color: var(--rojo); font-family: var(--font-num); }
   .btn-cobrar-final { width: 100%; padding: 18px; background: linear-gradient(135deg, #1b5e20, #2e7d32); color: #fff; border: none; border-radius: var(--r); font-size: 18px; font-weight: 800; font-family: 'Inter', sans-serif; cursor: pointer; margin-top: 10px; margin-bottom: 8px; box-shadow: 0 6px 20px rgba(46,125,50,0.4); display: flex; align-items: center; justify-content: center; gap: 10px; -webkit-tap-highlight-color: rgba(255,255,255,0.1); }
   .btn-cobrar-final:disabled { opacity: 0.45; pointer-events: none; }
+
+  /* ══ TIME PICKER MODAL (estilo iOS) ══════════════════════════════════ */
+  #timePickerOverlay {
+    display: none; position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+    align-items: flex-end; justify-content: center;
+  }
+  #timePickerOverlay.show { display: flex; }
+  #timePickerSheet {
+    width: 100%; max-width: 480px;
+    background: #fff; border-radius: 28px 28px 0 0;
+    padding: 0 0 env(safe-area-inset-bottom,16px);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
+    animation: tpSlideUp 0.32s cubic-bezier(0.34,1.28,0.64,1);
+  }
+  body.dark #timePickerSheet { background: #1A1A1A; }
+  @keyframes tpSlideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  #timePickerSheet .tp-handle {
+    width: 40px; height: 5px; border-radius: 3px;
+    background: #DEDEDE; margin: 12px auto 0;
+  }
+  body.dark #timePickerSheet .tp-handle { background: #333; }
+  #timePickerSheet .tp-title {
+    text-align: center; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.5px; color: #888; text-transform: uppercase;
+    padding: 14px 20px 6px;
+  }
+  body.dark #timePickerSheet .tp-title { color: #666; }
+  #timePickerSheet .tp-label-row {
+    display: flex; justify-content: center; gap: 0;
+    padding: 0 24px 4px;
+  }
+  #timePickerSheet .tp-label-row span {
+    flex: 1; text-align: center; font-size: 11px; font-weight: 600;
+    color: #aaa; letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  #timePickerSheet .tp-label-row span:last-child { max-width: 72px; }
+
+  /* Selector container */
+  .tp-pickers {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; padding: 0 20px; position: relative; height: 220px;
+  }
+  /* Franja de selección centrada */
+  .tp-pickers::before {
+    content: ''; position: absolute; left: 20px; right: 20px;
+    top: 50%; transform: translateY(-50%);
+    height: 48px; margin-top: -2px;
+    background: rgba(255,190,50,0.13); border-radius: 14px;
+    border-top: 2px solid rgba(255,190,50,0.55);
+    border-bottom: 2px solid rgba(255,190,50,0.55);
+    pointer-events: none; z-index: 1;
+  }
+  body.dark .tp-pickers::before {
+    background: rgba(255,190,50,0.09);
+    border-color: rgba(255,190,50,0.4);
+  }
+
+  .tp-col {
+    flex: 1; height: 220px; overflow: hidden; position: relative;
+    cursor: grab; -webkit-user-select: none; user-select: none;
+  }
+  .tp-col:last-child { max-width: 80px; }
+  .tp-col-inner {
+    display: flex; flex-direction: column; align-items: center;
+    transition: transform 0.18s cubic-bezier(0.25,0.46,0.45,0.94);
+    will-change: transform;
+  }
+  .tp-item {
+    height: 44px; display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 300; color: #bbb; width: 100%;
+    flex-shrink: 0; transition: font-size 0.15s, color 0.15s, font-weight 0.15s;
+    font-family: 'DM Mono', monospace;
+  }
+  .tp-item.selected {
+    font-size: 30px; font-weight: 700; color: #1A1A1A;
+  }
+  body.dark .tp-item { color: #444; }
+  body.dark .tp-item.selected { color: #F0F0F0; }
+
+  /* Fade top/bottom */
+  .tp-col::before, .tp-col::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 80px; z-index: 2; pointer-events: none;
+  }
+  .tp-col::before { top: 0;    background: linear-gradient(to bottom, #fff 0%, transparent 100%); }
+  .tp-col::after  { bottom: 0; background: linear-gradient(to top,   #fff 0%, transparent 100%); }
+  body.dark .tp-col::before { background: linear-gradient(to bottom, #1A1A1A 0%, transparent 100%); }
+  body.dark .tp-col::after  { background: linear-gradient(to top,   #1A1A1A 0%, transparent 100%); }
+
+  /* Separador ":" entre horas y minutos */
+  .tp-sep {
+    font-size: 28px; font-weight: 700; color: #1A1A1A; padding: 0 4px;
+    position: relative; z-index: 3; flex-shrink: 0; align-self: center;
+    font-family: 'DM Mono', monospace;
+  }
+  body.dark .tp-sep { color: #F0F0F0; }
+
+  /* Botón aceptar */
+  .tp-btn-ok {
+    display: block; width: calc(100% - 40px); margin: 12px 20px 4px;
+    padding: 17px; border: none; border-radius: 18px;
+    background: linear-gradient(135deg, #FFB300, #FF8F00);
+    color: #fff; font-size: 17px; font-weight: 800;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,143,0,0.4);
+    letter-spacing: 0.3px;
+  }
+  .tp-btn-ok:active { opacity: 0.85; transform: scale(0.98); }
 </style>
 </head>
 <body class="app-hidden">
@@ -3984,6 +4128,22 @@ body.dark .menu-editor-trigger-arrow { color: #AAAAAA; }
   padding: 11px 13px; cursor: grab; user-select: none;
 }
 .me-cat-drag { font-size: 16px; color: var(--gris); flex-shrink: 0; }
+
+/* ── Drag-to-reorder productos en editor de menú ── */
+.prod-drag-handle {
+  font-size: 20px; color: rgba(255,255,255,0.4); flex-shrink: 0;
+  cursor: grab; touch-action: none; padding: 0 4px;
+  user-select: none; -webkit-user-select: none;
+}
+.prod-drag-handle:active { cursor: grabbing; }
+.user-mgmt-item.prod-dragging {
+  opacity: 0.35; border: 2px dashed rgba(255,255,255,0.4);
+}
+.user-mgmt-item.prod-drag-over {
+  border-color: #00BCD4 !important;
+  background: rgba(0,188,212,0.18) !important;
+  transform: scale(1.01);
+}
 .me-cat-name { flex: 1; font-size: 14px; font-weight: 600; }
 .me-cat-count { font-size: 11px; color: var(--gris); }
 /* Toggle visibilidad en me-cat-item */
@@ -7461,21 +7621,38 @@ function _mOpts(cur) {
 function _apOpts(cur) {
   return ['AM','PM'].map(v=>`<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
 }
-function _timeSelects(id, val24) {
-  const {h, m, ap} = _to12(val24);
-  // Round minutes to nearest 5
-  const m5 = Math.round(m / 5) * 5 % 60;
-  return `<select class="horario-time-sel sel-h"  id="${id}-h"  onchange="syncHorarioSel('${id}')">${_hOpts(h)}</select>`
-       + `<span style="font-weight:800;font-size:13px;color:var(--negro);padding:0 1px;">:</span>`
-       + `<select class="horario-time-sel sel-m"  id="${id}-m"  onchange="syncHorarioSel('${id}')">${_mOpts(m5)}</select>`
-       + `<select class="horario-time-sel sel-ap" id="${id}-ap" onchange="syncHorarioSel('${id}')">${_apOpts(ap)}</select>`;
+
+// ── Formatea val24 a "12:30 PM" para mostrar en el botón ──────────
+function _fmt12(val24) {
+  if (!val24) return '--:--';
+  const [hh, mm] = val24.split(':').map(Number);
+  const ap = hh >= 12 ? 'PM' : 'AM';
+  const h  = hh % 12 || 12;
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')} ${ap}`;
 }
+
+// ── Botón que abre el picker (reemplaza los <select>) ─────────────
+function _timePicker(id, val24, label) {
+  const display = _fmt12(val24);
+  return `<button class="horario-time-btn" id="${id}-btn" data-val="${val24||'10:00'}"
+    onclick="abrirTimePicker(this.dataset.val,'${label}',function(v){var b=document.getElementById('${id}-btn');b.dataset.val=v;var s=b.querySelector('.tp-val-txt');if(s)s.textContent=_fmt12(v);_guardarHorarioDirecto();})">
+    <span class="tp-lbl-txt">${label}</span>
+    <span class="tp-val-txt">${display}</span>
+  </button>`;
+}
+
 function syncHorarioSel(id) {
-  // Auto-guardar al cambiar cualquier select de horario
+  // Auto-guardar al cambiar cualquier select de horario (legacy, se mantiene por compatibilidad)
   const horarios = leerHorariosDelForm();
   guardarHorariosLocal(horarios);
   renderClosedHorarioOverlay();
-  // Sincronizar a Firebase para que menu_domicilio lo reciba en tiempo real
+  if (window.fbSync) fbSync('menuSettings/horarios', horarios);
+}
+
+function _guardarHorarioDirecto() {
+  const horarios = leerHorariosDelForm();
+  guardarHorariosLocal(horarios);
+  renderClosedHorarioOverlay();
   if (window.fbSync) fbSync('menuSettings/horarios', horarios);
 }
 
@@ -7487,13 +7664,10 @@ function renderHorarios() {
     <div class="horario-row${h.abierto ? '' : ' cerrado'}" id="hrow-${i}">
       ${h.abierto
         ? `<div class="horario-times">
-            <div class="horario-times-fila">
-              <span class="horario-times-label">Abre</span>
-              ${_timeSelects('hdesde-'+i, h.desde)}
-            </div>
-            <div class="horario-times-fila">
-              <span class="horario-times-label">Cierra</span>
-              ${_timeSelects('hhasta-'+i, h.hasta)}
+            <div class="horario-times-fila" style="gap:8px;">
+              ${_timePicker('hdesde-'+i, h.desde, 'Abre')}
+              <span style="font-size:13px;color:var(--gris);font-weight:600;">—</span>
+              ${_timePicker('hhasta-'+i, h.hasta, 'Cierra')}
             </div>
            </div>`
         : `<div class="horario-cerrado-label">Cerrado</div>`}
@@ -7518,6 +7692,12 @@ function toggleHorarioDia(idx, abierto) {
 function leerHorariosDelForm() {
   const horarios = cargarHorariosConfig();
   horarios.forEach((h, i) => {
+    // Leer desde data-val de los botones del picker
+    const dBtn = document.getElementById('hdesde-'+i+'-btn');
+    const hBtn = document.getElementById('hhasta-'+i+'-btn');
+    if (dBtn && dBtn.dataset.val) h.desde = dBtn.dataset.val;
+    if (hBtn && hBtn.dataset.val) h.hasta = hBtn.dataset.val;
+    // Fallback: legacy selects (si existen)
     const dH  = document.getElementById('hdesde-'+i+'-h');
     const dM  = document.getElementById('hdesde-'+i+'-m');
     const dAP = document.getElementById('hdesde-'+i+'-ap');
@@ -12757,7 +12937,12 @@ function renderProductosConfig() {
         ${esc(cat)} <span style="font-weight:500;opacity:0.7;">(${items.length})</span>
       </div>
       ${items.map(({ item, idx }) => `
-        <div class="user-mgmt-item">
+        <div class="user-mgmt-item" data-menu-idx="${idx}" draggable="true"
+          ondragstart="prodDragStart(event,${idx})"
+          ondragover="prodDragOver(event,${idx})"
+          ondragend="prodDragEnd(event)"
+          ondrop="prodDrop(event,${idx})">
+          <span class="prod-drag-handle" ontouchstart="prodTouchStart(event,${idx})" ontouchmove="prodTouchMove(event)" ontouchend="prodTouchEnd(event,${idx})">⠿</span>
           ${item.foto
             ? `<img src="${item.foto}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;" alt="">`
             : `<div style="width:44px;height:44px;border-radius:10px;background:var(--fondo);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🍽️</div>`
@@ -12779,7 +12964,93 @@ function renderProductosConfig() {
   list.innerHTML = filtroBar + grupos_html;
 }
 
-let editProdFotoData = ''; // base64 de la foto en edición
+// ── Drag-to-reorder productos en el editor de menú ───────────────────────
+let _prodDragSrcIdx = null;
+let _prodTouchSrcIdx = null;
+let _prodTouchClone = null;
+let _prodTouchTargetIdx = null;
+
+function prodDragStart(e, idx) {
+  _prodDragSrcIdx = idx;
+  const el = e.currentTarget;
+  el.classList.add('prod-dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function prodDragOver(e, idx) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  if (idx === _prodDragSrcIdx) return;
+  document.querySelectorAll('.user-mgmt-item.prod-drag-over').forEach(el => el.classList.remove('prod-drag-over'));
+  e.currentTarget.classList.add('prod-drag-over');
+}
+function prodDrop(e, idx) {
+  e.preventDefault();
+  if (_prodDragSrcIdx === null || _prodDragSrcIdx === idx) return;
+  _prodMoverItem(_prodDragSrcIdx, idx);
+}
+function prodDragEnd(e) {
+  _prodDragSrcIdx = null;
+  document.querySelectorAll('.user-mgmt-item').forEach(el => {
+    el.classList.remove('prod-dragging', 'prod-drag-over');
+  });
+}
+
+function _prodMoverItem(fromIdx, toIdx) {
+  const item = MENU.splice(fromIdx, 1)[0];
+  MENU.splice(toIdx, 0, item);
+  registrarCambioMenu();
+  renderProductosConfig();
+  renderCategorias();
+  renderMenu();
+  if (typeof showToast === 'function') showToast('↕️ Orden guardado');
+}
+
+// ── Touch drag (para móvil) ──────────────────────────────────────────────
+function prodTouchStart(e, idx) {
+  _prodTouchSrcIdx = idx;
+  // Crear clone visual
+  const el = e.currentTarget.closest('.user-mgmt-item');
+  _prodTouchClone = el.cloneNode(true);
+  _prodTouchClone.style.cssText = `position:fixed;z-index:9999;opacity:0.85;pointer-events:none;
+    width:${el.offsetWidth}px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.45);
+    background:#1E1E1E;transition:none;`;
+  const rect = el.getBoundingClientRect();
+  const touch = e.touches[0];
+  _prodTouchClone.style.left = rect.left + 'px';
+  _prodTouchClone.style.top  = rect.top  + 'px';
+  document.body.appendChild(_prodTouchClone);
+  el.classList.add('prod-dragging');
+  e.preventDefault();
+}
+function prodTouchMove(e) {
+  if (!_prodTouchClone) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  _prodTouchClone.style.left = (touch.clientX - _prodTouchClone.offsetWidth / 2) + 'px';
+  _prodTouchClone.style.top  = (touch.clientY - 30) + 'px';
+  // Detectar sobre qué item estamos
+  _prodTouchClone.style.display = 'none';
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  _prodTouchClone.style.display = '';
+  const target = el ? el.closest('.user-mgmt-item[data-menu-idx]') : null;
+  document.querySelectorAll('.user-mgmt-item.prod-drag-over').forEach(x => x.classList.remove('prod-drag-over'));
+  if (target) {
+    const tIdx = parseInt(target.dataset.menuIdx);
+    if (tIdx !== _prodTouchSrcIdx) {
+      target.classList.add('prod-drag-over');
+      _prodTouchTargetIdx = tIdx;
+    }
+  }
+}
+function prodTouchEnd(e, idx) {
+  if (_prodTouchClone) { _prodTouchClone.remove(); _prodTouchClone = null; }
+  document.querySelectorAll('.user-mgmt-item').forEach(x => x.classList.remove('prod-dragging','prod-drag-over'));
+  if (_prodTouchTargetIdx !== null && _prodTouchTargetIdx !== _prodTouchSrcIdx) {
+    _prodMoverItem(_prodTouchSrcIdx, _prodTouchTargetIdx);
+  }
+  _prodTouchSrcIdx = null;
+  _prodTouchTargetIdx = null;
+}
 
 function _resetEditProdFoto() {
   editProdFotoData = '';
@@ -20352,6 +20623,8 @@ window.qr2Compartir  = qr2Compartir;
           <div style="display:flex;gap:5px;">
             <button onclick="gcGenerarImagen(this,${i})"
               style="padding:5px 11px;border-radius:8px;border:none;background:linear-gradient(135deg,#00897B,#004D40);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">🖼️ Imagen</button>
+            <button onclick="gcCompartir(this)" data-texto="${texto.replace(/\*/g,'').replace(/"/g,'&quot;').replace(/\n/g,'\\n')}"
+              style="padding:5px 10px;border-radius:8px;border:none;background:linear-gradient(135deg,#7B1FA2,#4A148C);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">↗ Compartir</button>
             <button onclick="gcCopiar(this)" data-texto="${texto.replace(/\*/g,'').replace(/"/g,'&quot;').replace(/\n/g,'\\n')}"
               style="padding:5px 12px;border-radius:8px;border:none;background:#1565C0;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Copiar</button>
           </div>
@@ -20373,6 +20646,60 @@ window.qr2Compartir  = qr2Compartir;
     }).catch(() => {
       try { const ta = document.createElement('textarea'); ta.value = texto; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); btn.textContent = '✓ Copiado'; setTimeout(() => { btn.textContent = 'Copiar'; }, 2000); } catch(_) {}
     });
+  };
+
+  // ── Compartir en redes sociales ──────────────────────────
+  window.gcCompartir = async function(btn) {
+    const texto = (btn.dataset.texto || '').replace(/\\n/g, '\n');
+    const nombre = gcGetNombre();
+    // Intentar Web Share API (nativa en móvil)
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: nombre, text: texto });
+        if (typeof showToast === 'function') showToast('✅ Compartido');
+        return;
+      } catch(e) { if (e.name === 'AbortError') return; }
+    }
+    // Fallback: mostrar mini-panel de redes
+    const textoEnc = encodeURIComponent(texto);
+    const redes = [
+      { nombre: 'WhatsApp',  url: `https://wa.me/?text=${textoEnc}`,                       color: '#25D366', icono: '💬' },
+      { nombre: 'Facebook',  url: `https://www.facebook.com/sharer/sharer.php?quote=${textoEnc}`, color: '#1877F2', icono: '📘' },
+      { nombre: 'Twitter/X', url: `https://twitter.com/intent/tweet?text=${textoEnc}`,     color: '#000000', icono: '✖️' },
+      { nombre: 'Telegram',  url: `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${textoEnc}`, color: '#229ED9', icono: '✈️' },
+    ];
+    // Quitar panel previo si existe
+    let prev = document.getElementById('gc-share-panel');
+    if (prev) { prev.remove(); return; }
+    const panel = document.createElement('div');
+    panel.id = 'gc-share-panel';
+    panel.style.cssText = `position:fixed;z-index:9999;bottom:90px;left:50%;transform:translateX(-50%);
+      background:#1E1E1E;border:1.5px solid rgba(255,255,255,0.15);border-radius:18px;
+      padding:16px 14px 10px;box-shadow:0 8px 32px rgba(0,0,0,0.6);min-width:280px;max-width:340px;`;
+    panel.innerHTML = `
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,0.5);margin-bottom:12px;text-align:center;">Compartir en</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        ${redes.map(r => `
+          <a href="${r.url}" target="_blank" rel="noopener noreferrer"
+            onclick="setTimeout(()=>{const p=document.getElementById('gc-share-panel');if(p)p.remove();},300)"
+            style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;
+              background:${r.color}22;border:1.5px solid ${r.color}66;text-decoration:none;
+              color:#fff;font-size:13px;font-weight:600;">
+            <span style="font-size:20px;">${r.icono}</span>${r.nombre}
+          </a>`).join('')}
+      </div>
+      <button onclick="document.getElementById('gc-share-panel').remove()"
+        style="width:100%;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);
+          background:transparent;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;font-family:inherit;">
+        Cancelar
+      </button>`;
+    document.body.appendChild(panel);
+    // Cerrar al tocar fuera
+    setTimeout(() => {
+      document.addEventListener('click', function _close(e) {
+        if (!panel.contains(e.target) && e.target !== btn) { panel.remove(); document.removeEventListener('click', _close); }
+      });
+    }, 100);
   };
 
   // ── Generar imagen para redes sociales ───────────────────
@@ -20783,5 +21110,186 @@ window.qr2Compartir  = qr2Compartir;
 })();
 </script>
 
+<!-- ══ TIME PICKER MODAL (iOS scroll wheel style) ════════════════════ -->
+<div id="timePickerOverlay" onclick="if(event.target===this)_tpCancel()">
+  <div id="timePickerSheet">
+    <div class="tp-handle"></div>
+    <div class="tp-title" id="tp-title">Hora de apertura</div>
+    <div class="tp-pickers">
+      <!-- Horas -->
+      <div class="tp-col" id="tp-col-h"
+        ontouchstart="_tpTouchStart(event,'h')" ontouchmove="_tpTouchMove(event,'h')" ontouchend="_tpTouchEnd(event,'h')"
+        onmousedown="_tpMouseDown(event,'h')">
+        <div class="tp-col-inner" id="tp-inner-h"></div>
+      </div>
+      <span class="tp-sep">:</span>
+      <!-- Minutos -->
+      <div class="tp-col" id="tp-col-m"
+        ontouchstart="_tpTouchStart(event,'m')" ontouchmove="_tpTouchMove(event,'m')" ontouchend="_tpTouchEnd(event,'m')"
+        onmousedown="_tpMouseDown(event,'m')">
+        <div class="tp-col-inner" id="tp-inner-m"></div>
+      </div>
+      <!-- AM/PM -->
+      <div class="tp-col" id="tp-col-ap"
+        ontouchstart="_tpTouchStart(event,'ap')" ontouchmove="_tpTouchMove(event,'ap')" ontouchend="_tpTouchEnd(event,'ap')"
+        onmousedown="_tpMouseDown(event,'ap')">
+        <div class="tp-col-inner" id="tp-inner-ap"></div>
+      </div>
+    </div>
+    <button class="tp-btn-ok" onclick="_tpConfirm()">Aceptar</button>
+  </div>
+</div>
+
+<script>
+// ══ TIME PICKER LÓGICA ═══════════════════════════════════════════════
+(function(){
+  const ITEM_H = 44; // altura de cada item en px
+  // Opciones
+  const OPTS = {
+    h:  Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0')),
+    m:  Array.from({length:12},(_,i)=>String(i*5).padStart(2,'0')),
+    ap: ['AM','PM']
+  };
+
+  let _cb     = null;   // callback(val24) al aceptar
+  let _selIdx = {h:0, m:0, ap:0};
+  let _drag   = {};     // estado de arrastre por columna
+
+  // ── Abrir picker ──────────────────────────────────────────────────
+  window.abrirTimePicker = function(val24, titulo, callback) {
+    _cb = callback;
+    const {h, m, ap} = _to12(val24);
+    _selIdx.h  = OPTS.h.indexOf(String(h).padStart(2,'0'));
+    if (_selIdx.h < 0) _selIdx.h = 0;
+    const m5   = Math.round(m/5)*5 % 60;
+    _selIdx.m  = OPTS.m.indexOf(String(m5).padStart(2,'0'));
+    if (_selIdx.m < 0) _selIdx.m = 0;
+    _selIdx.ap = ap === 'PM' ? 1 : 0;
+
+    document.getElementById('tp-title').textContent = titulo || 'Selecciona hora';
+    ['h','m','ap'].forEach(_tpRenderCol);
+    document.getElementById('timePickerOverlay').classList.add('show');
+  };
+
+  function _tpCancel() {
+    document.getElementById('timePickerOverlay').classList.remove('show');
+  }
+  window._tpCancel = _tpCancel;
+
+  window._tpConfirm = function() {
+    const h24 = _tpGet24();
+    document.getElementById('timePickerOverlay').classList.remove('show');
+    if (_cb) _cb(h24);
+  };
+
+  function _tpGet24() {
+    const h  = parseInt(OPTS.h[_selIdx.h]);
+    const m  = parseInt(OPTS.m[_selIdx.m]);
+    const ap = OPTS.ap[_selIdx.ap];
+    return _to24(h, m, ap);
+  }
+
+  // ── Render columna ────────────────────────────────────────────────
+  function _tpRenderCol(col) {
+    const inner = document.getElementById('tp-inner-'+col);
+    if (!inner) return;
+    const opts   = OPTS[col];
+    const sel    = _selIdx[col];
+    // Padding arriba y abajo de 2 items vacíos para centrar el seleccionado
+    inner.innerHTML = [
+      `<div class="tp-item" style="visibility:hidden;"></div>`,
+      `<div class="tp-item" style="visibility:hidden;"></div>`,
+      ...opts.map((v,i)=>`<div class="tp-item${i===sel?' selected':''}">${v}</div>`),
+      `<div class="tp-item" style="visibility:hidden;"></div>`,
+      `<div class="tp-item" style="visibility:hidden;"></div>`,
+    ].join('');
+    _tpSetTransform(col, sel, false);
+  }
+
+  function _tpSetTransform(col, idx, animate) {
+    const inner = document.getElementById('tp-inner-'+col);
+    if (!inner) return;
+    const offset = -(idx) * ITEM_H;
+    inner.style.transition = animate ? 'transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none';
+    inner.style.transform  = `translateY(${offset}px)`;
+    // Marcar seleccionado
+    inner.querySelectorAll('.tp-item').forEach((el,i) => {
+      // i=0 y i=1 son padding, el item real arranca en i=2
+      el.classList.toggle('selected', i === idx + 2);
+    });
+  }
+
+  function _tpSnap(col, newIdx) {
+    const opts = OPTS[col];
+    newIdx = Math.max(0, Math.min(opts.length-1, newIdx));
+    _selIdx[col] = newIdx;
+    _tpSetTransform(col, newIdx, true);
+  }
+
+  // ── Touch ─────────────────────────────────────────────────────────
+  window._tpTouchStart = function(e, col) {
+    _drag[col] = { startY: e.touches[0].clientY, startIdx: _selIdx[col], moved: 0, last: e.touches[0].clientY, vel: 0, ts: Date.now() };
+  };
+  window._tpTouchMove = function(e, col) {
+    if (!_drag[col]) return;
+    e.preventDefault();
+    const dy  = _drag[col].startY - e.touches[0].clientY;
+    const now = Date.now();
+    _drag[col].vel = (e.touches[0].clientY - _drag[col].last) / (now - _drag[col].ts + 1);
+    _drag[col].last = e.touches[0].clientY;
+    _drag[col].ts   = now;
+    const rawIdx = _drag[col].startIdx + dy / ITEM_H;
+    const inner  = document.getElementById('tp-inner-'+col);
+    if (inner) { inner.style.transition = 'none'; inner.style.transform = `translateY(${-rawIdx*ITEM_H}px)`; }
+    // Actualizar clase selected en tiempo real
+    const nearest = Math.round(rawIdx);
+    inner.querySelectorAll('.tp-item').forEach((el,i)=>el.classList.toggle('selected', i===nearest+2));
+  };
+  window._tpTouchEnd = function(e, col) {
+    if (!_drag[col]) return;
+    const dy      = _drag[col].startY - e.changedTouches[0].clientY;
+    const vel     = _drag[col].vel;
+    let   rawIdx  = _drag[col].startIdx + dy / ITEM_H;
+    // Inercia suave
+    rawIdx -= vel * 4;
+    _tpSnap(col, Math.round(rawIdx));
+    _drag[col] = null;
+  };
+
+  // ── Mouse (desktop) ───────────────────────────────────────────────
+  window._tpMouseDown = function(e, col) {
+    _drag[col] = { startY: e.clientY, startIdx: _selIdx[col] };
+    const onMove = ev => {
+      const dy = _drag[col].startY - ev.clientY;
+      const rawIdx = _drag[col].startIdx + dy / ITEM_H;
+      const inner = document.getElementById('tp-inner-'+col);
+      if (inner) { inner.style.transition='none'; inner.style.transform=`translateY(${-rawIdx*ITEM_H}px)`; }
+      const nearest = Math.round(rawIdx);
+      inner.querySelectorAll('.tp-item').forEach((el,i)=>el.classList.toggle('selected',i===nearest+2));
+    };
+    const onUp = ev => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const dy = _drag[col].startY - ev.clientY;
+      _tpSnap(col, Math.round(_drag[col].startIdx + dy / ITEM_H));
+      _drag[col] = null;
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  };
+
+  // ── Helpers h12 (reutiliza las del scope global si existen) ──────
+  function _to12(val24) {
+    if (!val24) return {h:6,m:0,ap:'AM'};
+    const [hh,mm] = val24.split(':').map(Number);
+    return {h:hh%12||12, m:mm, ap:hh>=12?'PM':'AM'};
+  }
+  function _to24(h,m,ap) {
+    let hh = h%12; if(ap==='PM') hh+=12;
+    return String(hh).padStart(2,'0')+':'+String(m).padStart(2,'0');
+  }
+})();
+</script>
+
 </body>
-</html>
